@@ -126,8 +126,10 @@ local function checkRequired(args, cmd_options, params)
 		if type <= 2 then
 			local options = v.options
 
-			if options then
-				local stat = checkRequired(args, v.options, params[v.name])
+			-- p(options, params[v.name])
+			local subparams = params[v.name]
+			if options and subparams then
+				local stat = checkRequired(args, options, subparams)
 				if not stat then return false end
 			end
 		else
@@ -259,8 +261,12 @@ function guild_m:slashCommand(data)
 		return found
 	else
 		print("new command")
-		cmd:publish()
-		self._slashCommands:_insert(cmd)
+
+		if cmd:publish() then
+			self._slashCommands:_insert(cmd)
+		else
+			return nil
+		end
 	end
 
 	return cmd
