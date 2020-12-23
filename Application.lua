@@ -154,7 +154,7 @@ function Use(client)
 		if data.name ~= cmd._name then return client:warning('Slash command %s "%s" name doesn\'t match with interaction response, got "%s"! Guild %s, channel %s, member %s', cmd._id, cmd._name, data.name, args.guild_id, args.channel_id, args.member.user.id) end
 		local options = data.options
 		local cmd_options = cmd._mapoptions
-		p(cmd_options)
+		-- p(cmd_options)
 		local params = {}
 		args[0] = ia
 		args[1] = client
@@ -222,23 +222,19 @@ end
 function guild_m:slashCommand(data)
 	local found
 	local name = data.name
-	print("Name", name)
 
 	if not self._slashCommands then
-		print("Got array")
 		self:getSlashCommands()
 	end
 
-	for k, v in pairs(self._slashCommands) do
+	for _, v in pairs(self._slashCommands) do
 		if v._name == name then
 			found = v
-			print("Found", v)
 			break
 		end
 	end
 
 	local cmd = AC(data, self)
-	print("new cmd", cmd)
 
 	if found then
 		if not found:_compare(cmd) then
