@@ -35,22 +35,63 @@ function AC:__init(data, parent)
 	self._mapoptions = recursiveOptionsMap(self._options)
 end
 
+local ignoredkeys = {
+	_mapoptions = true,
+	_mapchoices = true,
+	mapoptions = true,
+	mapchoices = true
+}
+
+-- local function cleanOptions(options)
+-- 	local new = {}
+
+-- 	for k, v in pairs(options) do
+-- 		if k == "options" then
+-- 			new[k] = cleanOptions(v)
+-- 		elseif not ignoredkeys[k] then
+-- 			if type(v) == "table" then
+-- 				new[k] = cleanOptions(v)
+-- 			else
+-- 				new[k] = v
+-- 			end
+-- 		end
+-- 	end
+
+-- 	return new
+-- end
+
 function AC:publish()
 	if self._id then return self:edit() end
 	local g = self._guild
 
 	if not g then
-		p(self.client._api:request('POST', f(endpoints.COMMANDS, self.client._slashid), {
+		local res, err = self.client._api:request('POST', f(endpoints.COMMANDS, self.client._slashid), {
 			name = self._name,
 			description = self._description,
 			options = self._options
-		}))
+		})
+
+		if not res then
+			return nil, err
+		else
+			self._id = res.id
+
+			return self
+		end
 	else
-		p(self.client._api:request('POST', f(endpoints.COMMANDS_GUILD, self.client._slashid, g._id), {
+		local res, err = self.client._api:request('POST', f(endpoints.COMMANDS_GUILD, self.client._slashid, g._id), {
 			name = self._name,
 			description = self._description,
 			options = self._options
-		}))
+		})
+
+		if not res then
+			return nil, err
+		else
+			self._id = res.id
+
+			return true
+		end
 	end
 end
 
@@ -58,17 +99,29 @@ function AC:edit()
 	local g = self._guild
 
 	if not g then
-		p(self.client._api:request('PATCH', f(endpoints.COMMANDS_MODIFY, self.client._slashid, self._id), {
+		local res, err = self.client._api:request('PATCH', f(endpoints.COMMANDS_MODIFY, self.client._slashid, self._id), {
 			name = self._name,
 			description = self._description,
 			options = self._options
-		}))
+		})
+
+		if not res then
+			return nil, err
+		else
+			return true
+		end
 	else
-		p(self.client._api:request('PATCH', f(endpoints.COMMANDS_MODIFY_GUILD, self.client._slashid, g._id, self._id), {
+		local res, err = self.client._api:request('PATCH', f(endpoints.COMMANDS_MODIFY_GUILD, self.client._slashid, g._id, self._id), {
 			name = self._name,
 			description = self._description,
 			options = self._options
-		}))
+		})
+
+		if not res then
+			return nil, err
+		else
+			return true
+		end
 	end
 end
 
@@ -101,13 +154,8 @@ function AC:delete()
 	end
 end
 
-local ignoredkeys = {
-	_mapoptions = true,
-	_mapchoices = true
-}
-
 local function recursiveCompare(a, b, checked)
-	local checked = checked or {}
+	checked = checked or {}
 	if checked[a] or checked[b] then return true end
 
 	for k, v in pairs(a) do
@@ -115,9 +163,11 @@ local function recursiveCompare(a, b, checked)
 			goto skip
 		end
 
-		if type(v) == "table" and b[k] then
+		if type(v) == "table" and type(b[k]) == "table" then
 			if not recursiveCompare(v, b[k], checked) then return false end
 		elseif v ~= b[k] then
+			print("k: ", k, "a[k]:", v, "b[k]: ", b[k])
+
 			return false
 		end
 
@@ -129,9 +179,11 @@ local function recursiveCompare(a, b, checked)
 			goto skip
 		end
 
-		if type(v) == "table" and a[k] then
+		if type(v) == "table" and type(a[k]) == "table" then
 			if not recursiveCompare(v, a[k], checked) then return false end
 		elseif v ~= a[k] then
+			print("k: ", k, "a[k]:", a[k], "b[k]: ", v)
+
 			return false
 		end
 
