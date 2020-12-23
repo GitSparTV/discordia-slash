@@ -44,7 +44,8 @@ local typeConverter = {
 }
 
 function sanitizeOptions(args, options, cmd_options, params)
-	for _, v in ipairs(options) do
+	for k = 1, #options do
+		local v = options[k]
 		local name = v.name
 
 		if params[name] then
@@ -120,14 +121,13 @@ function sanitizeOptions(args, options, cmd_options, params)
 end
 
 local function checkRequired(args, cmd_options, params)
-	for _, v in ipairs(cmd_options) do
-		local type = v.type
+	for k = 1, #cmd_options do
+		local v = cmd_options[k]
 
-		if type <= 2 then
+		if v.type <= 2 then
 			local options = v.options
-
-			-- p(options, params[v.name])
 			local subparams = params[v.name]
+
 			if options and subparams then
 				local stat = checkRequired(args, options, subparams)
 				if not stat then return false end
