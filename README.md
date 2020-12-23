@@ -66,7 +66,7 @@ Registers guild slash command. Finds existing command, if `commandData` is diffe
 
 Requires `commandData` table in [this format](https://discord.com/developers/docs/interactions/slash-commands#create-guild-application-command-json-params).
 
-To interact with the command you must define `callback` field. Additional `onfail` field can be defined to catch sanitization fails. `callback` and `onfail` parameters are explained here.
+To interact with the command you must define `callback` field. Additional `onfail` field can be defined to catch sanitization fails. `callback` and `onfail` parameters are explained [here](#commandtemplatecallbackcb).
 
 
 Returns `ApplicationCommand` object. `nil` on failure.
