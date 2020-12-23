@@ -179,10 +179,9 @@ function Use(client)
 		cb(ia, params, cmd)
 	end
 
-	function client._events.APPLICATION_COMMAND_CREATE(...)
-		p("APPLICATION_COMMAND_CREATE", ...)
-	end
-
+	-- function client._events.APPLICATION_COMMAND_CREATE(...)
+	-- p("APPLICATION_COMMAND_CREATE", ...)
+	-- end
 	client:once("ready", function()
 		local id = client:getApplicationInformation().id
 		client._slashid = id
