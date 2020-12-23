@@ -26,7 +26,7 @@ function IA:createResponse(type, data)
 end
 
 function IA:ack(silent)
-	return self:createResponse(silent and enums.interactionResponseType.acknowledge or enums.interactionResponseType.ackWithSource)
+	return self:createResponse(silent and enums.interactionResponseType.acknowledge or enums.interactionResponseType.acknowledgeWithSource)
 end
 
 function IA:reply(data, silent, hidden)
