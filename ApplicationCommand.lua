@@ -44,7 +44,6 @@ local ignoredkeys = {
 
 -- local function cleanOptions(options)
 -- 	local new = {}
-
 -- 	for k, v in pairs(options) do
 -- 		if k == "options" then
 -- 			new[k] = cleanOptions(v)
@@ -56,10 +55,8 @@ local ignoredkeys = {
 -- 			end
 -- 		end
 -- 	end
-
 -- 	return new
 -- end
-
 function AC:publish()
 	if self._id then return self:edit() end
 	local g = self._guild

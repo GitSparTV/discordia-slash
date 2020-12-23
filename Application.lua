@@ -144,12 +144,10 @@ local function checkRequired(args, cmd_options, params)
 	return true
 end
 
-function Use(client)
-	if not client then
-		error("Client instance is required")
-	end
+function client_m:useSlashCommands()
+	self._slashCommandsInjected = true
 
-	function client._events.INTERACTION_CREATE(args, client)
+	function self._events.INTERACTION_CREATE(args, client)
 		-- if args.type == enumsInteractionTypePing then
 		-- 	client._api:request('GET', f(endpoints.INTERACTION_RESPONSE_CREATE, args.id, args.token), {
 		-- 		type = enums.interactionResponseType.pong
@@ -157,59 +155,62 @@ function Use(client)
 		-- 	return
 		-- end
 		-- For webhooks
-		local ia = IA(args, client)
 		local data = args.data
 		local cmd = client:getSlashCommand(data.id)
 		if not cmd then return end
 		if data.name ~= cmd._name then return client:warning('Slash command %s "%s" name doesn\'t match with interaction response, got "%s"! Guild %s, channel %s, member %s', cmd._id, cmd._name, data.name, args.guild_id, args.channel_id, args.member.user.id) end
-		local options = data.options
-		local cmd_options = cmd._mapoptions
-		-- p(cmd_options)
 		local params = {}
-		args[0] = ia
-		args[1] = client
-		args[2] = cmd
+		local ia = IA(args, client)
 
-		if options and not sanitizeOptions(args, options, cmd_options, params) or not checkRequired(args, cmd._options, params) then
-			local cb = cmd._onfail
-			print("Cmd Failed")
-			if not cb then return end
-			cb(ia, params, cmd)
+		do
+			local options = data.options
+			local cmd_options = cmd._mapoptions
+			args[0] = ia
+			args[1] = client
+			args[2] = cmd
 
-			return
+			if options and not sanitizeOptions(args, options, cmd_options, params) or not checkRequired(args, cmd._options, params) then
+				local cb = cmd._onfail
+				print("Cmd Failed")
+				if not cb then return end
+				cb(ia, params, cmd)
+
+				return
+			end
 		end
 
-		for k, v in pairs(params) do
-			print(k, v)
-		end
-
-		-- p(options)
 		local cb = cmd._callback
 		if not cb then return client:warning('Unhandled slash command interaction: %s "%s" (%s)!', cmd._id, cmd._name, cmd._guild and "Guild " .. cmd._guild.id or "Global") end
 		cb(ia, params, cmd)
 	end
 
-	-- function client._events.APPLICATION_COMMAND_CREATE(...)
-	-- p("APPLICATION_COMMAND_CREATE", ...)
-	-- end
-	client:once("ready", function()
-		local id = client:getApplicationInformation().id
-		client._slashid = id
-		client._globalCommands = {}
-		client._guildCommands = {}
-		client:getSlashCommands()
-		client:emit("slashCommandsReady")
+	self:once("ready", function()
+		local id = self:getApplicationInformation().id
+		self._slashid = id
+		self._globalCommands = {}
+		self._guildCommands = {}
+		self:getSlashCommands()
+		self:emit("slashCommandsReady")
 	end)
+
+	return self
 end
 
 function client_m:slashCommand(data)
 	local found
-	local name = data.name
 
-	for _, v in pairs(self._globalCommands) do
-		if v._name == name then
-			found = v
-			break
+	if not self._globalCommands then
+		self:getSlashCommands()
+	end
+
+	do
+		local name = data.name
+
+		for _, v in pairs(self._globalCommands) do
+			if v._name == name then
+				found = v
+				break
+			end
 		end
 	end
 
@@ -218,12 +219,17 @@ function client_m:slashCommand(data)
 	if found then
 		if not found:_compare(cmd) then
 			found:_merge(cmd)
+		elseif not found._callback then
+			found._callback = cmd._callback
 		end
 
 		return found
 	else
-		cmd:publish()
-		self._globalCommands:_insert(cmd)
+		if cmd:publish() then
+			self._globalCommands:_insert(cmd)
+		else
+			return nil
+		end
 	end
 
 	return cmd
@@ -231,16 +237,19 @@ end
 
 function guild_m:slashCommand(data)
 	local found
-	local name = data.name
 
 	if not self._slashCommands then
 		self:getSlashCommands()
 	end
 
-	for _, v in pairs(self._slashCommands) do
-		if v._name == name then
-			found = v
-			break
+	do
+		local name = data.name
+
+		for _, v in pairs(self._slashCommands) do
+			if v._name == name then
+				found = v
+				break
+			end
 		end
 	end
 
@@ -248,20 +257,13 @@ function guild_m:slashCommand(data)
 
 	if found then
 		if not found:_compare(cmd) then
-			print("difference, merged")
 			found:_merge(cmd)
-		else
-			print("the same")
-
-			if not found._callback then
-				found._callback = cmd._callback
-			end
+		elseif not found._callback then
+			found._callback = cmd._callback
 		end
 
 		return found
 	else
-		print("new command")
-
 		if cmd:publish() then
 			self._slashCommands:_insert(cmd)
 		else
@@ -273,7 +275,10 @@ function guild_m:slashCommand(data)
 end
 
 function client_m:getSlashCommands()
-	local list = self._api:request('GET', f(endpoints.COMMANDS, self._slashid))
+	local list, err = self._api:request('GET', f(endpoints.COMMANDS, self._slashid))
+	if not list then
+		return nil, err
+	end
 	local cache = cache_m(list, AC, self)
 	self._globalCommands = cache
 
@@ -281,7 +286,10 @@ function client_m:getSlashCommands()
 end
 
 function guild_m:getSlashCommands()
-	local list = self.client._api:request('GET', f(endpoints.COMMANDS_GUILD, self.client._slashid, self.id))
+	local list, err = self.client._api:request('GET', f(endpoints.COMMANDS_GUILD, self.client._slashid, self.id))
+	if not list then
+		return nil, err
+	end
 	local cache = cache_m(list, AC, self)
 	self._slashCommands = cache
 	self.client._guildCommands[self] = cache
@@ -293,10 +301,9 @@ function client_m:getSlashCommand(id)
 	local g = self._globalCommands:get(id)
 	if g then return g end
 
-	for k, v in pairs(self._guildCommands) do
+	for _, v in pairs(self._guildCommands) do
 		g = v:get(id)
 		if g then return g end
 	end
+	return nil
 end
-
-return Use
