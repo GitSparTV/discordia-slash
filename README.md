@@ -9,6 +9,7 @@
 
 ## Note
 This is extension and is not meant to be used on guild without `bot` scope, instead if provides additional power for bot.
+
 Updating global commands might reject all members requests because they might have old version of the command. This is a downside of a strict sanitization.
 
 ## Install
@@ -33,7 +34,8 @@ To setup commands you can't use `client:on("ready", func)` instead use `client:o
 Registers global slash command. Finds existing command, if `commandData` is different from it, merges changes, otherwise returns existing object without making a HTTP request. 
 
 Requires `commandData` table in [this format](https://discord.com/developers/docs/interactions/slash-commands#create-guild-application-command-json-params).
-To interact with the command you must define `callback` field. Additional `onfail` field can be defined to catch sanitization fails. `callback` and `onfail` parameters are explained here.
+
+To interact with the command you must define `callback` field. Additional `onfail` field can be defined to catch sanitization fails. `callback` and `onfail` parameters are explained [here](#commandtemplatecallbackcb).
 
 Returns `ApplicationCommand` object. `nil` on failure.
 
@@ -63,6 +65,7 @@ end)
 Registers guild slash command. Finds existing command, if `commandData` is different from it, merges changes, otherwise returns existing object without making a HTTP request. 
 
 Requires `commandData` table in [this format](https://discord.com/developers/docs/interactions/slash-commands#create-guild-application-command-json-params).
+
 To interact with the command you must define `callback` field. Additional `onfail` field can be defined to catch sanitization fails. `callback` and `onfail` parameters are explained here.
 
 
@@ -184,7 +187,7 @@ Sends a follow-up. You must call `Interaction:createResponse`, `Interaction:ack`
 
 `private` will send a reply as ephemeral message (It's visible only for the command caller). Note this feature is not documented and unstable, report bugs to Discord if you find something.
 
-Returns `id` of the follow-up (not a `Message` object`).
+Returns `id` of the follow-up (not a `Message` object).
 
 ### `Interaction:updateFollowUp(id, data)`
 Updates the follow-up.
@@ -240,7 +243,7 @@ Return `CommandTemplateOption`.
 
 `description` is the option description. Must be between 1 and 100 in length.
 
-`type` is the option type. See [slash.enums.optionType]()
+`type` is the option type. See [slash.enums.optionType](#optiontype)
 
 `required` sets the option be required. Can't be set on subcommands and subcommands groups.
 
@@ -281,12 +284,14 @@ Same as `CommandTemplate:group(name, description)`
 
 ###  `CommandTemplateOption:required(no)`
 Sets if the option is required.
+
 Can't be set on subcommands and subcommands groups.
 
 ###  `CommandTemplateOption:default(no)`
 Sets if the option is default. Requires to set `required` to `true`.
 
 Can't be set on subcommands and subcommands groups.
+
 [Doesn't work yet](https://github.com/discord/discord-api-docs/issues/2393)
 
 ###  `CommandTemplateOption:choices(...)`
@@ -294,6 +299,7 @@ Adds choices for the option. Can be set only on string and integer option types.
 Is option type is string, accepts string, if integer: integers.
 
 If value is given makes a choice with the same name and value. Example: argument `100` will add `{name = "100", value = 100}` 
+
 If table is given just inserts it.
 
 ###  `CommandTemplateOption:finish()`
