@@ -139,6 +139,10 @@ function AC:setCallback(callback)
 	self._callback = callback
 end
 
+function AC:setOnFail(onFail)
+	self._onFail = onFail
+end
+
 function AC:delete()
 	local g = self._guild
 
