@@ -87,15 +87,15 @@ function IA:deleteFollowUp(id)
 	return self._parent._api:request('DELETE', f(endpoints.INTERACTION_FOLLOWUP_MODIFY, self._parent._slashid, self._token, id))
 end
 
-function IAgetters.guild(self)
+function IAgetters:guild()
 	return self._guild
 end
 
-function IAgetters.channel(self)
+function IAgetters:channel()
 	return self._channel
 end
 
-function IAgetters.member(self)
+function IAgetters:member()
 	return self._member
 end
 

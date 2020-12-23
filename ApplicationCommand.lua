@@ -218,24 +218,28 @@ function AC:_merge(cmd)
 	self:edit()
 end
 
-function ACgetters.name(self)
+function ACgetters:name()
 	return self._name
 end
 
-function ACgetters.description(self)
+function ACgetters:description()
 	return self._description
 end
 
-function ACgetters.options(self)
+function ACgetters:options()
 	return self._options
 end
 
-function ACgetters.guild(self)
+function ACgetters:guild()
 	return self._guild
 end
 
-function ACgetters.callback(self)
+function ACgetters:callback()
 	return self._callback
+end
+
+function ACgetters:onFail()
+	return self._onFail
 end
 
 return AC

@@ -204,7 +204,7 @@ function client_m:slashCommand(data)
 	local found
 	local name = data.name
 
-	for k, v in pairs(self._globalCommands) do
+	for _, v in pairs(self._globalCommands) do
 		if v._name == name then
 			found = v
 			break
