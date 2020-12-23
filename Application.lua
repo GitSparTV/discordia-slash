@@ -157,7 +157,7 @@ function client_m:useSlashCommands()
 		-- For webhooks
 		local data = args.data
 		local cmd = client:getSlashCommand(data.id)
-		if not cmd then return end
+		if not cmd then return client:warning('Uncached slash command (%s) on INTERACTION_CREATE', data.id) end
 		if data.name ~= cmd._name then return client:warning('Slash command %s "%s" name doesn\'t match with interaction response, got "%s"! Guild %s, channel %s, member %s', cmd._id, cmd._name, data.name, args.guild_id, args.channel_id, args.member.user.id) end
 		local params = {}
 		local ia = IA(args, client)
