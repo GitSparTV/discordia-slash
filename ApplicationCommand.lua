@@ -8,7 +8,9 @@ local function recursiveOptionsMap(t)
 	local map = {}
 
 	for _, v in ipairs(t) do
-		map[v.name] = v
+		local name = string.lower(v.name)
+		v.name = name
+		map[name] = v
 
 		if v.options then
 			v.mapoptions = recursiveOptionsMap(v.options)
