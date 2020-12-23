@@ -1,7 +1,7 @@
 local optionMeta = {}
 optionMeta.__index = optionMeta
 
-function optionMeta:option(name, description, type)
+function optionMeta:option(name, description, type, required)
 	if not name then
 		error("Name is required")
 	elseif not description then
@@ -11,7 +11,7 @@ function optionMeta:option(name, description, type)
 	elseif #description < 1 or #description > 100 then
 		error("Must be between 1 and 100 in length")
 	elseif type < 1 or type > 8 then
-		error("Unknown type")
+		error("Value must be one of (1, 2, 3, 4, 5, 6, 7, 8)")
 	end
 
 	local ctnr = self[1]
@@ -19,7 +19,7 @@ function optionMeta:option(name, description, type)
 
 	if not self[2] then
 		if selfType <= 2 then
-			if type <= 2 then
+			if (selfType == 1 and type <= 2) or (selfType == 2 and type == 2) then
 				error("Nesting of sub-commands is unsupported at this time")
 			end
 		else
@@ -42,7 +42,19 @@ function optionMeta:option(name, description, type)
 
 	ctnr.options[#ctnr.options + 1] = t
 
+	if required then
+		t:required()
+	end
+
 	return t
+end
+
+function optionMeta:suboption(name, description)
+	return self:option(name, description, 1)
+end
+
+function optionMeta:group(name, description)
+	return self:option(name, description, 2)
 end
 
 function optionMeta:required(no)
@@ -53,7 +65,7 @@ function optionMeta:required(no)
 		error("Required cannot be configured for this type of option")
 	end
 
-	for _, v in ipairs(self.parent.options) do
+	for _, v in ipairs(self.parent[1].options) do
 		if not v.required then
 			error("Required options must be placed before non-required options")
 		end
@@ -76,7 +88,7 @@ function optionMeta:default(no)
 		error("Default cannot be configured with required = false")
 	end
 
-	for _, v in ipairs(self.parent.options) do
+	for _, v in ipairs(self.parent[1].options) do
 		if v[1].default then
 			error("There can be 1 default option within command, sub-command, and sub-command group options")
 		end
@@ -139,6 +151,8 @@ local commandMeta = {}
 commandMeta.__index = commandMeta
 commandMeta.option = optionMeta.option
 commandMeta.finish = optionMeta.finish
+commandMeta.suboption = optionMeta.suboption
+commandMeta.group = optionMeta.group
 
 function commandMeta:callback(cb)
 	self[1].callback = cb
