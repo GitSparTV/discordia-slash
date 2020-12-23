@@ -29,14 +29,14 @@ function IA:ack(silent)
 	return self:createResponse(silent and enums.interactionResponseType.acknowledge or enums.interactionResponseType.acknowledgeWithSource)
 end
 
-function IA:reply(data, silent, hidden)
+function IA:reply(data, silent, private)
 	if type(data) == "string" then
 		data = {
 			content = data,
 		}
 	end
 
-	if hidden then
+	if private then
 		data.flags = 64
 	end
 
@@ -57,14 +57,14 @@ function IA:delete()
 	return self._parent._api:request('DELETE', f(endpoints.INTERACTION_RESPONSE_MODIFY, self._parent._slashid, self._token))
 end
 
-function IA:followUp(data, hidden)
+function IA:followUp(data, private)
 	if type(data) == "string" then
 		data = {
 			content = data
 		}
 	end
 
-	if hidden then
+	if private then
 		data.flags = 64
 	end
 
