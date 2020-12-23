@@ -56,7 +56,7 @@ function sanitizeOptions(args, options, cmd_options, params)
 		local cmdOption = cmd_options[name]
 
 		if not cmdOption then
-			args[1]:warning('Unknown option "%s" from guild %s, channel %s, member %s!', name, args.guild_id, args.channel_id, args.member.user.id)
+			args[1]:warning('Unknown option "%s" in slash command %s "%s" from guild %s, channel %s, member %s!', name, args[2]._id, args[2]._name, args.guild_id, args.channel_id, args.member.user.id)
 
 			return false
 		end
@@ -66,6 +66,14 @@ function sanitizeOptions(args, options, cmd_options, params)
 		if type <= 2 then
 			local subparams = {}
 			local suboptions = v.options
+
+			if options.group then
+				args[1]:warning('Slash command %s "%s" from guild %s, channel %s, member %s has multiple selected sub-options!', args[2]._id, args[2]._name, args.guild_id, args.channel_id, args.member.user.id)
+
+				return false
+			end
+
+			options.group = v
 
 			if suboptions then
 				local stat = sanitizeOptions(args, v.options, cmdOption.mapoptions, subparams)
