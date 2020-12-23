@@ -1,6 +1,4 @@
-local discordia = require('discordia')
-local enums = discordia.enums
-local enum = enums.enum
+local enum = require('discordia').enums.enum
 
 local ApplicationCommandOptionType = enum({
 	subCommand = 1,
