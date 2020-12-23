@@ -23,7 +23,7 @@ local InteractionResponseType = enum({
 	acknowledge = 2,
 	channelMessage = 3,
 	channelMessageWithSource = 4,
-	ackWithSource = 5
+	acknowledgeWithSource = 5
 })
 
 return {
