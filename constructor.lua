@@ -36,8 +36,8 @@ function optionMeta:option(name, description, type, required)
 		}
 	}, optionMeta)
 
-	if type <= 2 then
-		t[1].options = {}
+	if not ctnr.options then
+		ctnr.options = {}
 	end
 
 	ctnr.options[#ctnr.options + 1] = t
