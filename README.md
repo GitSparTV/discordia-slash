@@ -218,17 +218,13 @@ Returns `onFail`.
 ### `Interaction:createResponse(type, data)`
 Sends the response. Used as a main command for `Interaction:ack` and `Interaction:reply`.
 
-### `Interaction:ack(silent)`
+### `Interaction:ack()`
 Acknowledges the response, allowing to use follow-ups.
 
-`silent` will not show member command call message (`MemberName used /cmdname with Botname`).
-
-### `Interaction:reply(data, silent, private)`
+### `Interaction:reply(data, private)`
 Acknowledges and replies.
 
 `data` is either a table [InteractionApplicationCommandCallbackData](https://discord.com/developers/docs/interactions/slash-commands#interaction-interactionapplicationcommandcallbackdata) or a string with the content. 
-
-`silent` will not show member command call message (`MemberName used /cmdname with Botname`).
 
 `private` will send a reply as ephemeral message (It's visible only for the command caller). Note this feature is not documented and unstable, report bugs to Discord if you find something.
 
@@ -390,8 +386,6 @@ Accessible from `slash.enums`.
 | Field | Value |
 |--|--|
 | pong | 1 |
-| acknowledge | 2 |
-| channelMessage | 3 |
 | channelMessageWithSource | 4 |
 | acknowledgeWithSource | 5 |
 

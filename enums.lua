@@ -18,10 +18,8 @@ local InteractionType = enum({
 
 local InteractionResponseType = enum({
 	pong = 1,
-	acknowledge = 2,
-	channelMessage = 3,
 	channelMessageWithSource = 4,
-	acknowledgeWithSource = 5
+	DeferredChannelMessageWithSource = 5
 })
 
 return {

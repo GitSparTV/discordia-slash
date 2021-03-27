@@ -25,11 +25,11 @@ function IA:createResponse(type, data)
 	})
 end
 
-function IA:ack(silent)
-	return self:createResponse(silent and enums.interactionResponseType.acknowledge or enums.interactionResponseType.acknowledgeWithSource)
+function IA:ack()
+	return self:createResponse(enums.interactionResponseType.DeferredChannelMessageWithSource)
 end
 
-function IA:reply(data, silent, private)
+function IA:reply(data, private)
 	if type(data) == "string" then
 		data = {
 			content = data,
@@ -40,7 +40,7 @@ function IA:reply(data, silent, private)
 		data.flags = 64
 	end
 
-	return self:createResponse(silent and enums.interactionResponseType.channelMessage or enums.interactionResponseType.channelMessageWithSource, data)
+	return self:createResponse(enums.interactionResponseType.channelMessageWithSource, data)
 end
 
 function IA:update(data)
