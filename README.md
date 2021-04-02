@@ -7,10 +7,14 @@
 - Additional command constructor.
 - Sub-command and sub-command group supported.
 
-## Note
-This is extension and is not meant to be used on guild without `bot` scope, instead if provides additional power for bot.
+---
 
-Updating global commands might reject all members requests because they might have old version of the command. This is a downside of a strict sanitization.
+__[<img src="https://raw.githubusercontent.com/GitSparTV/GitSparTV/681727efe146af9a4f3042c121072d0e60bd3e95/saythanks.svg" width="300">](https://gitspartv.github.io/GitSparTV/saythanks.html)__
+
+---
+
+## Note
+This is extension and is not meant to be used on guild without `bot` scope, instead it provides additional power for bot.
 
 ## Install
 ```sh
@@ -18,11 +22,6 @@ lit install GitSparTV/discordia-slash
 ```
 or use GitHub
 
----
-
-__[<img src="https://raw.githubusercontent.com/GitSparTV/GitSparTV/681727efe146af9a4f3042c121072d0e60bd3e95/saythanks.svg" width="300">](https://gitspartv.github.io/GitSparTV/saythanks.html)__
-
----
 
 ## API
 This library works as extension thus requires injection into `Client` instance.
