@@ -172,7 +172,29 @@ function AC:addPermission(perm, g)
 	end
 
 	::found::
-	p(self._permissions)
+
+	return self.client._api:request('PUT', f(endpoints.COMMAND_PERMISSIONS_MODIFY, self.client._slashid, g._id, self._id), {
+		permissions = self._permissions
+	})
+end
+
+function AC:removePermission(perm, g)
+	g = self._guild or g
+
+	if not g then
+		error("Guild is required")
+	end
+
+	if not self._permissions then
+		self._permissions = self:getPermissions(g) or {}
+	end
+
+	for k, v in ipairs(self._permissions) do
+		if v.id == perm.id and v.type == perm.type then
+			table.remove(self._permissions, k)
+			return
+		end
+	end
 
 	return self.client._api:request('PUT', f(endpoints.COMMAND_PERMISSIONS_MODIFY, self.client._slashid, g._id, self._id), {
 		permissions = self._permissions
