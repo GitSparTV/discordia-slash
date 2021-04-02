@@ -25,6 +25,7 @@ function AC:__init(data, parent)
 	self._parent = parent
 	self._name = data.name
 	self._description = data.description
+	self._default_permission = data.default_permission
 	self._callback = data.callback
 	self._guild = parent._id and parent
 
@@ -126,6 +127,52 @@ function AC:delete()
 	end
 end
 
+function AC:getPermissions(g)
+	g = self._guild or g
+
+	if not g then
+		error("Guild is required")
+	end
+
+	local stat, err = self.client._api:request('GET', f(endpoints.COMMAND_PERMISSIONS_MODIFY, self.client._slashid, g._id, self._id))
+
+	if stat then
+		return stat.permissions
+	else
+		return stat, err
+	end
+end
+
+function AC:addPermission(perm, g)
+	g = self._guild or g
+
+	if not g then
+		error("Guild is required")
+	end
+
+	if not self._permissions then
+		self._permissions = self:getPermissions(g) or {}
+	end
+
+	for k, v in ipairs(self._permissions) do
+		if v.id == perm.id and v.type == perm.type then
+			if v.permission == perm.permission then return end
+			self._permissions[k] = perm
+			goto found
+		end
+	end
+
+	do
+		self._permissions[#self._permissions + 1] = perm
+	end
+
+	::found::
+	p(self._permissions)
+
+	return self.client._api:request('PUT', f(endpoints.COMMAND_PERMISSIONS_MODIFY, self.client._slashid, g._id, self._id), {
+		permissions = self._permissions
+	})
+end
 local function recursiveCompare(a, b, checked)
 	checked = checked or {}
 	if checked[a] or checked[b] then return true end
