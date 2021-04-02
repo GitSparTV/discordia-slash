@@ -80,14 +80,6 @@ function optionMeta:required(no)
 	ctnr.required = not no
 end
 
-function optionMeta:disableForEveryone(no)
-	if not no then
-		no = false
-	end
-
-	self[1].default_permission = no
-end
-
 -- function optionMeta:default(no)
 -- 	local ctnr = self[1]
 -- 	local type = ctnr.type
@@ -160,6 +152,15 @@ commandMeta.option = optionMeta.option
 commandMeta.finish = optionMeta.finish
 commandMeta.suboption = optionMeta.suboption
 commandMeta.group = optionMeta.group
+
+function commandMeta:disableForEveryone(no)
+	if not no then
+		no = false
+	end
+
+	self[1].default_permission = no
+end
+
 
 function commandMeta:callback(cb)
 	self[1].callback = cb
