@@ -43,7 +43,8 @@ function AC:publish()
 		local res, err = self.client._api:request('POST', f(endpoints.COMMANDS, self.client._slashid), {
 			name = self._name,
 			description = self._description,
-			options = self._options
+			options = self._options,
+			default_permission = self._default_permission
 		})
 
 		if not res then
@@ -57,7 +58,8 @@ function AC:publish()
 		local res, err = self.client._api:request('POST', f(endpoints.COMMANDS_GUILD, self.client._slashid, g._id), {
 			name = self._name,
 			description = self._description,
-			options = self._options
+			options = self._options,
+			default_permission = self._default_permission
 		})
 
 		if not res then
@@ -77,7 +79,8 @@ function AC:edit()
 		local res, err = self.client._api:request('PATCH', f(endpoints.COMMANDS_MODIFY, self.client._slashid, self._id), {
 			name = self._name,
 			description = self._description,
-			options = self._options
+			options = self._options,
+			default_permission = self._default_permission
 		})
 
 		if not res then
@@ -89,7 +92,8 @@ function AC:edit()
 		local res, err = self.client._api:request('PATCH', f(endpoints.COMMANDS_MODIFY_GUILD, self.client._slashid, g._id, self._id), {
 			name = self._name,
 			description = self._description,
-			options = self._options
+			options = self._options,
+			default_permission = self._default_permission
 		})
 
 		if not res then
