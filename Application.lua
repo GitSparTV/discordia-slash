@@ -9,14 +9,31 @@ local cache_m = discordia.class.classes.Cache
 local enums = require('./enums')
 
 local typeConverter = {
+	[enums.optionType.string] = function(val) return val end,
+	[enums.optionType.integer] = function(val) return val end,
+	[enums.optionType.boolean] = function(val) return val end,
+	[enums.optionType.user] = function(val, args) return args:getMember(val) end,
+	[enums.optionType.channel] = function(val, args) return args:getChannel(val) end,
+	[enums.optionType.role] = function(val, args) return args:getRole(val) end,
 }
 
+local subCommand = enums.optionType.subCommand
+local subCommandGroup = enums.optionType.subCommandGroup
 
+local function makeParams(data, guild, output)
+	output = output or {}
 
+	for k, v in ipairs(data) do
+		if v.type == subCommand or v.type == subCommandGroup then
+			local t = {}
+			output[v.name] = t
+			makeParams(v.options, guild, t)
 		else
+			output[v.name] = typeConverter[v.type](v.value, guild)
 		end
 	end
 
+	return output
 end
 
 function client_m:useSlashCommands()
@@ -28,6 +45,7 @@ function client_m:useSlashCommands()
 		if not cmd then return client:warning('Uncached slash command (%s) on INTERACTION_CREATE', data.id) end
 		if data.name ~= cmd._name then return client:warning('Slash command %s "%s" name doesn\'t match with interaction response, got "%s"! Guild %s, channel %s, member %s', cmd._id, cmd._name, data.name, args.guild_id, args.channel_id, args.member.user.id) end
 		local ia = IA(args, client)
+		local params = makeParams(data.options, ia.guild)
 		local cb = cmd._callback
 		if not cb then return client:warning('Unhandled slash command interaction: %s "%s" (%s)!', cmd._id, cmd._name, cmd._guild and "Guild " .. cmd._guild.id or "Global") end
 		cb(ia, params, cmd)
