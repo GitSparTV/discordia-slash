@@ -161,6 +161,10 @@ function guild_m:getSlashCommands()
 end
 
 function client_m:getSlashCommand(id)
+	if not self._globalCommands then
+		self:getSlashCommands()
+	end
+	
 	local g = self._globalCommands:get(id)
 	if g then return g end
 
