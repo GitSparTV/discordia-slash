@@ -32,31 +32,6 @@ function AC:__init(data, parent)
 		self._options = data.options or {}
 	end
 
-	self._mapoptions = recursiveOptionsMap(self._options)
-end
-
-local ignoredkeys = {
-	_mapoptions = true,
-	_mapchoices = true,
-	mapoptions = true,
-	mapchoices = true
-}
-
--- local function cleanOptions(options)
--- 	local new = {}
--- 	for k, v in pairs(options) do
--- 		if k == "options" then
--- 			new[k] = cleanOptions(v)
--- 		elseif not ignoredkeys[k] then
--- 			if type(v) == "table" then
--- 				new[k] = cleanOptions(v)
--- 			else
--- 				new[k] = v
--- 			end
--- 		end
--- 	end
--- 	return new
--- end
 function AC:publish()
 	if self._id then return self:edit() end
 	local g = self._guild
@@ -132,15 +107,10 @@ end
 
 function AC:setOptions(options)
 	self._options = options
-	self._mapoptions = recursiveOptionsMap(options)
 end
 
 function AC:setCallback(callback)
 	self._callback = callback
-end
-
-function AC:setOnFail(onFail)
-	self._onFail = onFail
 end
 
 function AC:delete()
@@ -214,7 +184,6 @@ function AC:_merge(cmd)
 	self._name = cmd._name
 	self._description = cmd._description
 	self._options = cmd._options
-	self._mapoptions = cmd._mapoptions or recursiveOptionsMap(cmd._options)
 	self._callback = cmd._callback
 	self:edit()
 end
