@@ -5,7 +5,7 @@ local ret = {
 }
 
 ret.constructor = function()
-	ret.new = require("./constructor")
+	ret.new, ret.permission = unpack(require("./constructor"))
 end
 
 return ret

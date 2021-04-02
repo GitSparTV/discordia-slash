@@ -6,12 +6,16 @@ function optionMeta:option(name, description, type, required)
 		error("Name is required")
 	elseif not description then
 		error("Description is required")
-	elseif #name < 3 or #name > 32 then
-		error("Must be between 3 and 32 in length")
-	elseif #description < 1 or #description > 100 then
+	elseif not type then
+		error("Type is required")
+	elseif #name == 0 or #name > 32 then
+		error("Must be between 1 and 32 in length")
+	elseif string.find(name, "^[^%w_-]$") then
+		error("The name should match ^[\\w-]{1,32}$ pattern")
+	elseif #description == 0 or #description > 100 then
 		error("Must be between 1 and 100 in length")
 	elseif type < 1 or type > 8 then
-		error("Value must be one of (1, 2, 3, 4, 5, 6, 7, 8)")
+		error("Value type must be between 1 and 8 (See ApplicationCommandOptionType)")
 	end
 
 	local ctnr = self[1]
@@ -76,27 +80,30 @@ function optionMeta:required(no)
 	ctnr.required = not no
 end
 
-function optionMeta:default(no)
-	local ctnr = self[1]
-	local type = ctnr.type
-
-	if type <= 2 then
-		error("Default cannot be configured for this type of option")
+function optionMeta:disableForEveryone(no)
+	if not no then
+		no = false
 	end
 
-	if not self[1].required then
-		error("Default cannot be configured with required = false")
-	end
-
-	for _, v in ipairs(self.parent[1].options) do
-		if v[1].default then
-			error("There can be 1 default option within command, sub-command, and sub-command group options")
-		end
-	end
-
-	ctnr.default = not no
+	self[1].default_permission = no
 end
 
+-- function optionMeta:default(no)
+-- 	local ctnr = self[1]
+-- 	local type = ctnr.type
+-- 	if type <= 2 then
+-- 		error("Default cannot be configured for this type of option")
+-- 	end
+-- 	if not self[1].required then
+-- 		error("Default cannot be configured with required = false")
+-- 	end
+-- 	for _, v in ipairs(self.parent[1].options) do
+-- 		if v[1].default then
+-- 			error("There can be 1 default option within command, sub-command, and sub-command group options")
+-- 		end
+-- 	end
+-- 	ctnr.default = not no
+-- end
 function optionMeta:choices(...)
 	local ctnr = self[1]
 	local opttype = ctnr.type
@@ -158,18 +165,16 @@ function commandMeta:callback(cb)
 	self[1].callback = cb
 end
 
-function commandMeta:onFail(cb)
-	self[1].onfail = cb
-end
-
-local function new(name, description)
+local function new(name, description, cb)
 	if not name then
 		error("Name is required")
 	elseif not description then
 		error("Description is required")
-	elseif #name < 3 or #name > 32 then
-		error("Must be between 3 and 32 in length")
-	elseif #description < 1 or #description > 100 then
+	elseif #name == 0 or #name > 32 then
+		error("Must be between 1 and 32 in length")
+	elseif string.find(name, "^[^%w_-]$") then
+		error("The name should match ^[\\w-]{1,32}$ pattern")
+	elseif #description == 0 or #description > 100 then
 		error("Must be between 1 and 100 in length")
 	end
 
@@ -177,10 +182,45 @@ local function new(name, description)
 		{
 			name = name,
 			description = description,
-			options = {}
+			options = {},
+			default_permission = true,
+			callback = cb
 		},
 		true
 	}, commandMeta)
 end
 
-return new
+local discordia = require("discordia")
+local enums = require("./enums")
+local enum_user = enums.applicationCommandPermissionType.user
+local enum_role = enums.applicationCommandPermissionType.role
+
+local function perm(obj, allow, _type)
+	if type(obj) == "string" then
+		if not _type then
+			error("Type required")
+		end
+
+		return {
+			id = obj,
+			type = _type,
+			permission = allow and true or false
+		}
+	end
+
+	local t = discordia.class.type(obj)
+
+	if t == "Member" or t == "User" then
+		_type = enum_user
+	elseif t == "Role" then
+		_type = enum_role
+	end
+
+	return {
+		id = obj.id,
+		type = _type,
+		permission = allow and true or false
+	}
+end
+
+return {new, perm}
