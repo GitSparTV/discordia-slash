@@ -26,6 +26,7 @@ function AC:__init(data, parent)
 	self._name = data.name
 	self._description = data.description
 	self._default_permission = data.default_permission
+	self._version = data.version
 	self._callback = data.callback
 	self._guild = parent._id and parent
 
@@ -173,28 +174,26 @@ function AC:addPermission(perm, g)
 		permissions = self._permissions
 	})
 end
+
 local function recursiveCompare(a, b, checked)
 	checked = checked or {}
 	if checked[a] or checked[b] then return true end
+	local inner_checked = {}
 
 	for k, v in pairs(a) do
-		if ignoredkeys[k] then
-			goto skip
-		end
-
 		if type(v) == "table" and type(b[k]) == "table" then
 			if not recursiveCompare(v, b[k], checked) then return false end
 		elseif v ~= b[k] then
 			print("k: ", k, "a[k]:", v, "b[k]: ", b[k])
 
 			return false
+		else
+			inner_checked[k] = true
 		end
-
-		::skip::
 	end
 
 	for k, v in pairs(b) do
-		if k == ignoredkeys[k] then
+		if inner_checked[k] then
 			goto skip
 		end
 
@@ -214,16 +213,10 @@ local function recursiveCompare(a, b, checked)
 	return true
 end
 
-local uv = require("uv")
-
 function AC:_compare(cmd)
-	if self._name ~= cmd._name or self._description ~= cmd._description then return false end
-	local uvhrtime = uv.hrtime
-	local s = uvhrtime()
-	local c = recursiveCompare(self._options, cmd._options)
-	local e = uvhrtime()
-	print(string.format("Comparison took: %f ms", (e - s) / 1000000))
-	if not c then return false end
+	if self._name ~= cmd._name or self._description ~= cmd._description or self._default_permission ~= cmd._default_permission then return false end
+	if not self._options and cmd._options then return false end
+	if not recursiveCompare(self._options, cmd._options) then return false end
 
 	return true
 end
@@ -233,6 +226,7 @@ function AC:_merge(cmd)
 	self._description = cmd._description
 	self._options = cmd._options
 	self._callback = cmd._callback
+	self._default_permission = cmd._default_permission
 	self:edit()
 end
 
@@ -256,8 +250,8 @@ function ACgetters:callback()
 	return self._callback
 end
 
-function ACgetters:onFail()
-	return self._onFail
+function ACgetters:version()
+	return self._version
 end
 
 return AC
