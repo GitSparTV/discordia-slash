@@ -19,20 +19,25 @@ function IA:__init(data, parent)
 end
 
 function IA:createResponse(type, data)
+	self._type = type
+
 	return self._parent._api:request('POST', f(endpoints.INTERACTION_RESPONSE, self._id, self._token), {
 		type = type,
 		data = data,
 	})
 end
 
-function IA:ack(silent)
-	return self:createResponse(silent and enums.interactionResponseType.acknowledge or enums.interactionResponseType.acknowledgeWithSource)
+local deferredChannelMessageWithSource = enums.interactionResponseType.deferredChannelMessageWithSource
+local channelMessageWithSource = enums.interactionResponseType.channelMessageWithSource
+
+function IA:ack()
+	return self:createResponse(deferredChannelMessageWithSource)
 end
 
-function IA:reply(data, silent, private)
+function IA:reply(data, private)
 	if type(data) == "string" then
 		data = {
-			content = data,
+			content = data
 		}
 	end
 
@@ -40,7 +45,7 @@ function IA:reply(data, silent, private)
 		data.flags = 64
 	end
 
-	return self:createResponse(silent and enums.interactionResponseType.channelMessage or enums.interactionResponseType.channelMessageWithSource, data)
+	return self:createResponse(channelMessageWithSource, data)
 end
 
 function IA:update(data)
@@ -65,12 +70,26 @@ function IA:followUp(data, private)
 	end
 
 	if private then
-		data.flags = 64
+		if self._type == deferredChannelMessageWithSource then
+			private = false
+		else
+			data.flags = 64
+		end
 	end
 
 	local res = self._parent._api:request('POST', f(endpoints.INTERACTION_FOLLOWUP_CREATE, self._parent._slashid, self._token), data)
 
-	return res.id, self._channel:getMessage(res.id), res
+	if res.id then
+		local msg
+
+		if not private then
+			msg = self._channel:getMessage(res.id)
+		end
+
+		return res.id, msg, res
+	end
+
+	return res
 end
 
 function IA:updateFollowUp(id, data)
