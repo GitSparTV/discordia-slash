@@ -31,6 +31,7 @@ function AC:__init(data, parent)
 	if not self._options then
 		self._options = data.options or {}
 	end
+end
 
 function AC:publish()
 	if self._id then return self:edit() end

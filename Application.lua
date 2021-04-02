@@ -143,9 +143,7 @@ end
 
 function client_m:getSlashCommands()
 	local list, err = self._api:request('GET', f(endpoints.COMMANDS, self._slashid))
-	if not list then
-		return nil, err
-	end
+	if not list then return nil, err end
 	local cache = cache_m(list, AC, self)
 	self._globalCommands = cache
 
@@ -154,9 +152,7 @@ end
 
 function guild_m:getSlashCommands()
 	local list, err = self.client._api:request('GET', f(endpoints.COMMANDS_GUILD, self.client._slashid, self.id))
-	if not list then
-		return nil, err
-	end
+	if not list then return nil, err end
 	local cache = cache_m(list, AC, self)
 	self._slashCommands = cache
 	self.client._guildCommands[self] = cache
@@ -172,5 +168,6 @@ function client_m:getSlashCommand(id)
 		g = v:get(id)
 		if g then return g end
 	end
+
 	return nil
 end
