@@ -28,74 +28,17 @@ local slash = require("discordia-slash")
 local client = dis.Client():useSlashCommands()
 ```
 
-To setup commands you can't use `client:on("ready", func)` instead use `client:on("slashCommandsReady", func)`.
+To setup commands you can't use `client:on("ready", func)` use `client:on("slashCommandsReady", func)` instead.
 
-### Table of contents
-
-- [`Client:slashCommand()`](#clientslashcommandcommanddata)
-- [`Guild:slashCommand()`](#guildslashcommandcommanddata)
-- [`Client:getSlashCommands()`](#clientgetslashcommands)
-- [`Guild:getSlashCommands()`](#guildgetslashcommands)
-- [`Client:getSlashCommand(id)`](#clientgetslashcommandid)
-- [ApplicationCommand](#applicationcommand)
-  - [`ApplicationCommand:publish()`](#applicationcommandpublish)
-  - [`ApplicationCommand:edit()`](#applicationcommandedit)
-  - [`ApplicationCommand:setName(name)`](#applicationcommandsetnamename)
-  - [`ApplicationCommand:setDescription(description)`](#applicationcommandsetdescriptiondescription)
-  - [`ApplicationCommand:setOptions(options)`](#applicationcommandsetoptionsoptions)
-  - [`ApplicationCommand:setCallback(callback)`](#applicationcommandsetcallbackcallback)
-  - [`ApplicationCommand:setOnFail(callback)`](#applicationcommandsetonfailcallback)
-  - [`ApplicationCommand:delete()`](#applicationcommanddelete)
-  - [`ApplicationCommand:_compare(cmd)`](#applicationcommand_comparecmd)
-  - [`ApplicationCommand:_merge(cmd)`](#applicationcommand_mergecmd)
-  - [`ApplicationCommand.name`](#applicationcommandname)
-  - [`ApplicationCommand.description`](#applicationcommanddescription)
-  - [`ApplicationCommand.options`](#applicationcommandoptions)
-  - [`ApplicationCommand.guild`](#applicationcommandguild)
-  - [`ApplicationCommand.callback`](#applicationcommandcallback)
-  - [`ApplicationCommand.onFail`](#applicationcommandonfail)
-- [Interaction](#interaction)
-  - [`Interaction:createResponse(type, data)`](#interactioncreateresponsetype-data)
-  - [`Interaction:ack(silent)`](#interactionacksilent)
-  - [`Interaction:reply(data, silent, private)`](#interactionreplydata-silent-private)
-  - [`Interaction:update(data)`](#interactionupdatedata)
-  - [`Interaction:delete()`](#interactiondelete)
-  - [`Interaction:followUp(data, private)`](#interactionfollowupdata-private)
-  - [`Interaction:updateFollowUp(id, data)`](#interactionupdatefollowupid-data)
-  - [`Interaction:deleteFollowUp(id)`](#interactiondeletefollowupid)
-  - [`Interaction.guild`](#interactionguild)
-  - [`Interaction.channel`](#interactionchannel)
-  - [`Interaction.member`](#interactionmember)
-- [Constructor](#constructor)
-  - [`slash.new(name, description)`](#slashnewname-description)
-- [CommandTemplate](#commandtemplate)
-  - [`CommandTemplate:option(name, description, type, required)`](#commandtemplateoptionname-description-type-required)
-  - [`CommandTemplate:finish()`](#commandtemplatefinish)
-  - [`CommandTemplate:suboption(name, description)`](#commandtemplatesuboptionname-description)
-  - [`CommandTemplate:group(name, description)`](#commandtemplategroupname-description)
-  - [`CommandTemplate:callback(cb)`](#commandtemplatecallbackcb)
-  - [`CommandTemplate:onFail(cb)`](#commandtemplateonfailcb)
-- [CommandTemplateOption](#commandtemplateoption)
-  - [`CommandTemplateOption:option(name, description, type, required)`](#commandtemplateoptionoptionname-description-type-required)
-  - [`CommandTemplateOption:suboption(name, description)`](#commandtemplateoptionsuboptionname-description)
-  - [`CommandTemplateOption:group(name, description)`](#commandtemplateoptiongroupname-description)
-  - [`CommandTemplateOption:required(no)`](#commandtemplateoptionrequiredno)
-  - [`CommandTemplateOption:default(no)`](#commandtemplateoptiondefaultno)
-  - [`CommandTemplateOption:choices(...)`](#commandtemplateoptionchoices)
-  - [`CommandTemplateOption:finish()`](#commandtemplateoptionfinish)
-- [Enums](#enums)
-  - [optionType](#optiontype)
-  - [interactionType](#interactiontype)
-  - [interactionResponseType](#interactionresponsetype)
-- [Example](#examples)
-  
+### `Client:useSlashCommands()`
+Sets up slash commands, returns client back.
 
 ### `Client:slashCommand(commandData)`
 Registers global slash command. Finds existing command, if `commandData` is different from it, merges changes, otherwise returns existing object without making a HTTP request. 
 
 Requires `commandData` table in [this format](https://discord.com/developers/docs/interactions/slash-commands#create-guild-application-command-json-params).
 
-To interact with the command you must define `callback` field. Additional `onfail` field can be defined to catch sanitization fails. `callback` and `onfail` parameters are explained [here](#commandtemplatecallbackcb).
+To interact with the command you must define `callback` field. `callback` parameters are explained [here](#commandtemplatecallbackcb).
 
 Returns `ApplicationCommand` object. `nil` on failure.
 
@@ -127,7 +70,6 @@ Registers guild slash command. Finds existing command, if `commandData` is diffe
 Requires `commandData` table in [this format](https://discord.com/developers/docs/interactions/slash-commands#create-guild-application-command-json-params).
 
 To interact with the command you must define `callback` field. Additional `onfail` field can be defined to catch sanitization fails. `callback` and `onfail` parameters are explained [here](#commandtemplatecallbackcb).
-
 
 Returns `ApplicationCommand` object. `nil` on failure.
 
@@ -183,11 +125,17 @@ Sets the options of the command. Note, this doesn't send HTTP request, you must 
 ### `ApplicationCommand:setCallback(callback)`
 Sets the callback of the command. Note, this doesn't send HTTP request, you must call `ApplicationCommand:edit()` by yourself.
 
-### `ApplicationCommand:setOnFail(callback)`
-Sets the onFail callback of the command. Note, this doesn't send HTTP request, you must call `ApplicationCommand:edit()` by yourself.
-
 ### `ApplicationCommand:delete()`
 Deletes the command, after this call the command must not be used.
+
+### `ApplicationCommand:getPermissions(guild)`
+Returns list of [ApplicationCommandPermissions](https://github.com/discord/discord-api-docs/pull/2737/files#diff-07978ef9d619062fb1afbb70ea065124531246743444f4354cc9e6c8879f8780R864) objects. `guild` parameter is required only for global commands.
+
+### `ApplicationCommand:setPermission(perm, g)`
+Adds permission to the list. `perm` should be in [ApplicationCommandPermissions](https://github.com/discord/discord-api-docs/pull/2737/files#diff-07978ef9d619062fb1afbb70ea065124531246743444f4354cc9e6c8879f8780R864) format (can be created easily with `slash.perm()` from `slash.constructor()`). `guild` parameter is required only for global commands.
+
+### `ApplicationCommand:setPermission(perm, g)`
+Removes permission from the list. `perm` should be in [ApplicationCommandPermissions](https://github.com/discord/discord-api-docs/pull/2737/files#diff-07978ef9d619062fb1afbb70ea065124531246743444f4354cc9e6c8879f8780R864) format (can be created easily with `slash.perm()` from `slash.constructor()`). `guild` parameter is required only for global commands.
 
 ### `ApplicationCommand:_compare(cmd)`
 Used internally to compare existing command data with new one.
@@ -210,25 +158,21 @@ Returns `guild`.
 ### `ApplicationCommand.callback`
 Returns `callback`.
 
-### `ApplicationCommand.onFail`
-Returns `onFail`.
+### `ApplicationCommand.version`
+Return `version`.
 
 ### Interaction
 
 ### `Interaction:createResponse(type, data)`
 Sends the response. Used as a main command for `Interaction:ack` and `Interaction:reply`.
 
-### `Interaction:ack(silent)`
-Acknowledges the response, allowing to use follow-ups.
+### `Interaction:ack()`
+Acknowledges the response (makes it deferred), doesn't sent message instantly, use follow-ups to send additional messages.
 
-`silent` will not show member command call message (`MemberName used /cmdname with Botname`).
-
-### `Interaction:reply(data, silent, private)`
+### `Interaction:reply(data, private)`
 Acknowledges and replies.
 
 `data` is either a table [InteractionApplicationCommandCallbackData](https://discord.com/developers/docs/interactions/slash-commands#interaction-interactionapplicationcommandcallbackdata) or a string with the content. 
-
-`silent` will not show member command call message (`MemberName used /cmdname with Botname`).
 
 `private` will send a reply as ephemeral message (It's visible only for the command caller). Note this feature is not documented and unstable, report bugs to Discord if you find something.
 
@@ -241,13 +185,15 @@ Updates first reply.
 Deletes main reply.
 
 ### `Interaction:followUp(data, private)`
-Sends a follow-up. You must call `Interaction:createResponse`, `Interaction:ack` or `Interaction:reply` before using this
+Sends a follow-up. You must call `Interaction:createResponse`, `Interaction:ack` or `Interaction:reply` before using this.
 
 `data` is either a table [InteractionApplicationCommandCallbackData](https://discord.com/developers/docs/interactions/slash-commands#interaction-interactionapplicationcommandcallbackdata) or a string with the content. 
 
 `private` will send a reply as ephemeral message (It's visible only for the command caller). Note this feature is not documented and unstable, report bugs to Discord if you find something.
 
-Returns `id` of the follow-up (not a `Message` object).
+Note: `private` **won't work** if you used `Interaction:ack`.
+
+Returns `id`, `msg`, `result` of the follow-up, `msg` is `nil` if `private` is set.
 
 ### `Interaction:updateFollowUp(id, data)`
 Updates the follow-up.
@@ -276,21 +222,23 @@ Returns `Member` object where the command was used.
 
 Note: this field is valid only if your bot is in this guild.
 
-### Constructor
+### Command Constructor
 
 Constructor is not present by default, you must load it first.
 ```lua
 slash.constructor()
 ```
-This adds new field into `slash`: `new`
+This adds new fields into `slash`: `new` and `perm`
 
-### `slash.new(name, description)`
+### `slash.new(name, description, cb)`
 
 Returns new command template.
 
-`name` is the command name. Must be between 3 and 32 in length.
+`name` is the command name. Must be between 1 and 32 in length (Should satisfy `^[\\w-]{1,32}$`).
 
 `description` is the command description. Must be between 1 and 100 in length.
+
+`cb` (optional) is command callback.
 
 ### CommandTemplate
 
@@ -299,7 +247,7 @@ Adds new option.
 
 Return `CommandTemplateOption`.
 
-`name` is the option name. Must be between 3 and 32 in length.
+`name` is the option name. Must be between 1 and 32 in length (Should satisfy `^[\\w-]{1,32}$`).
 
 `description` is the option description. Must be between 1 and 100 in length.
 
@@ -318,6 +266,9 @@ Shortcut for `CommandTemplate:option(name, description, slash.enums.optionType.s
 ### `CommandTemplate:group(name, description)`
 Shortcut for `CommandTemplate:option(name, description, slash.enums.optionType.subCommandGroup, required)`.
 
+### `CommandTemplate:disableForEveryone(no)`
+If `no` is `false`, by default, no one will be able it use the command.
+
 ### `CommandTemplate:callback(cb)`
 Sets command callback.
 
@@ -326,12 +277,7 @@ Callback parameters:
 - `Params`, table of parameters, use option names to get them.
 - `ApplicationCommand`, the invoked command, can be used to determine if the command is global or guild-exclusive. 
 
-### `CommandTemplate:onFail(cb)`
-Sets command on-fail callback.
-
-Callback has the same parameters as `callback`.
-
-###  CommandTemplateOption
+### CommandTemplateOption
 
 ###  `CommandTemplateOption:option(name, description, type, required)`
 Same as `CommandTemplate:option(name, description, type, required)`.
@@ -347,13 +293,6 @@ Sets if the option is required.
 
 Can't be set on subcommands and subcommands groups.
 
-###  `CommandTemplateOption:default(no)`
-Sets if the option is default. Requires to set `required` to `true`.
-
-Can't be set on subcommands and subcommands groups.
-
-[Doesn't work yet](https://github.com/discord/discord-api-docs/issues/2393)
-
 ###  `CommandTemplateOption:choices(...)`
 Adds choices for the option. Can be set only on string and integer option types.
 Is option type is string, accepts string, if integer: integers.
@@ -364,6 +303,14 @@ If table is given just inserts it.
 
 ###  `CommandTemplateOption:finish()`
 Same as `CommandTemplate:finish()`, however used internally by parent.
+
+### Permission constructor
+
+### `slash.perm(obj, allow, type)`
+Creates simple permission object.
+`obj` is either id (string) or Member or User or Role object.
+`allow` sets if `obj` can use command or not.
+`type` sets the type of the `obj` (if it's string, otherwise set automatically). See `enum.applicationCommandPermissionType`.
 
 ## Enums
 Accessible from `slash.enums`.
@@ -383,17 +330,21 @@ Accessible from `slash.enums`.
 ### interactionType
 | Field | Value |
 |--|--|
-| ping (not used by the library) | 1 |
+| ping (not supported by the library) | 1 |
 | applicationCommand | 2 |
 
 ### interactionResponseType
 | Field | Value |
 |--|--|
 | pong | 1 |
-| acknowledge | 2 |
-| channelMessage | 3 |
 | channelMessageWithSource | 4 |
-| acknowledgeWithSource | 5 |
+| deferredChannelMessageWithSource | 5 |
+
+### applicationCommandPermissionType
+| Field | Value |
+|--|--|
+| role | 1 |
+| user | 2 |
 
 ## Examples
 
