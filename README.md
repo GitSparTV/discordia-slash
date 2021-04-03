@@ -2,7 +2,6 @@
 **[Discordia](https://github.com/SinisterRectus/Discordia) 2.0 extension for [slash commands](https://discord.com/developers/docs/interactions/slash-commands).**
 
 ## Features
-- Entirely strictly sanitized interaction response. Any incorrect type, unknown option, unknown choice, missing required option, duplicated, etc. Everything wrong is ignored.
 - Easy setup.
 - Additional command constructor.
 - Sub-command and sub-command group supported.
