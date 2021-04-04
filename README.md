@@ -136,10 +136,10 @@ Deletes the command, after this call the command must not be used.
 Returns list of [ApplicationCommandPermissions](https://github.com/discord/discord-api-docs/pull/2737/files#diff-07978ef9d619062fb1afbb70ea065124531246743444f4354cc9e6c8879f8780R864) objects. `guild` parameter is required only for global commands.
 
 ### `ApplicationCommand:setPermission(perm, g)`
-Adds permission to the list. `perm` should be in [ApplicationCommandPermissions](https://github.com/discord/discord-api-docs/pull/2737/files#diff-07978ef9d619062fb1afbb70ea065124531246743444f4354cc9e6c8879f8780R864) format (can be created easily with `slash.perm()` from `slash.constructor()`). `guild` parameter is required only for global commands.
+Adds permission to the list. `perm` should be in [ApplicationCommandPermissions](https://github.com/discord/discord-api-docs/pull/2737/files#diff-07978ef9d619062fb1afbb70ea065124531246743444f4354cc9e6c8879f8780R864) format (can be created easily with `slash.permission()` from `slash.constructor()`). `guild` parameter is required only for global commands.
 
 ### `ApplicationCommand:setPermission(perm, g)`
-Removes permission from the list. `perm` should be in [ApplicationCommandPermissions](https://github.com/discord/discord-api-docs/pull/2737/files#diff-07978ef9d619062fb1afbb70ea065124531246743444f4354cc9e6c8879f8780R864) format (can be created easily with `slash.perm()` from `slash.constructor()`). `guild` parameter is required only for global commands.
+Removes permission from the list. `perm` should be in [ApplicationCommandPermissions](https://github.com/discord/discord-api-docs/pull/2737/files#diff-07978ef9d619062fb1afbb70ea065124531246743444f4354cc9e6c8879f8780R864) format (can be created easily with `slash.permission()` from `slash.constructor()`). `guild` parameter is required only for global commands.
 
 ### `ApplicationCommand:_compare(cmd)`
 Used internally to compare existing command data with new one.
@@ -310,7 +310,7 @@ Same as `CommandTemplate:finish()`, however used internally by parent.
 
 ### Permission constructor
 
-### `slash.perm(obj, allow, type)`
+### `slash.permission(obj, allow, type)`
 Creates simple permission object.
 `obj` is either id (string) or Member or User or Role object.
 `allow` sets if `obj` can use command or not.
