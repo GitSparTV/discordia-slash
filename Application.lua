@@ -21,6 +21,7 @@ local subCommand = enums.optionType.subCommand
 local subCommandGroup = enums.optionType.subCommandGroup
 
 local function makeParams(data, guild, output)
+	if not data then return {} end
 	output = output or {}
 
 	for k, v in ipairs(data) do
