@@ -174,20 +174,27 @@ end
 
 local function FindFocused(options)
 	local focused = {}
+	local focused_object
 
 	for k, v in ipairs(options) do
 		local type = v.type
 		local name = v.name
 
 		if type == subCommandOptionType or type == subCommandGroupOptionType then
-			focused[name] = FindFocused(v.options)
+			focused[name], focused_object = FindFocused(v.options)
+
+			if focused_object then
+				break
+			end 
 		elseif v.focused then
 			-- Autocomplete is made only for primitive types, so we just use v.value
 			focused[name] = v.value
+			focused_object = v
+			break
 		end
 	end
 
-	return focused
+	return focused, focused_object
 end
 
 do
