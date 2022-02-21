@@ -91,7 +91,18 @@ local function AugmentResolved(ia)
 	if not resolved then return end
 
 	local guild = ia.guild
+	local channel = ia.channel
 	local client = ia.client
+
+	do
+		local users = resolved.users
+
+		if users then
+			for k, v in pairs(users) do
+				users[k] = client._users:_insert(v)
+			end
+		end
+	end
 
 	do
 		local members = resolved.members
@@ -99,6 +110,16 @@ local function AugmentResolved(ia)
 		if members then
 			for k, v in pairs(members) do
 				members[k] = guild:getMember(k)
+			end
+		end
+	end
+
+	do
+		local roles = resolved.roles
+
+		if roles then
+			for k, v in pairs(roles) do
+				roles[k] = guild._roles:_insert(v)
 			end
 		end
 	end
@@ -114,21 +135,13 @@ local function AugmentResolved(ia)
 	end
 
 	do
-		local users = resolved.users
+		local messages = resolved.messages
 
-		if users then
-			for k, v in pairs(users) do
-				users[k] = client._users:_insert(v)
-			end
-		end
-	end
-
-	do
-		local roles = resolved.roles
-
-		if roles then
-			for k, v in pairs(roles) do
-				roles[k] = guild._roles:_insert(v)
+		if messages then
+			for k, v in pairs(messages) do
+				if channel then
+					messages[k] = channel:getMessage(k)
+				end
 			end
 		end
 	end
