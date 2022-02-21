@@ -210,36 +210,40 @@ do
 	local chatInputType = discordia.enums.appCommandType.chatInput
 	local userType = discordia.enums.appCommandType.user
 	local messageType = discordia.enums.appCommandType.message
-
-	local function AugmentInteractionData(ia)
-		local data = ia.data
-
-		AugmentResolved(ia)
-
-		if data.type == chatInputType then
-			data.parsed_options = ParseOptions(data.options, data.resolved)
-
-		elseif data.type == messageType then
-
-		end
-
-		return data
-	end
-
 	local applicationCommandType = discordia.enums.interactionType.applicationCommand
 	local autocompleteType = discordia.enums.interactionType.applicationCommandAutocomplete
 
 	function Client:useSlashCommands()
 		self:on("interactionCreate", function(ia)
-			if ia.type == applicationCommandType then
-				local data = AugmentInteractionData(ia)
+			print("IA by " .. ia.member.name, ia.data.name)
 
-				ia.client:emit("applicationCommand", ia, data, data.parsed_options)
+			if ia.type == applicationCommandType then
+				local data = ia.data
+
+				AugmentResolved(ia)
+
+				if data.type == chatInputType then
+					data.parsed_options = ParseOptions(data.options, data.resolved)
+
+					ia.client:emit("slashCommand", ia, data, data.parsed_options)
+				elseif data.type == messageType then
+					data.message = data.resolved.messages[data.target_id]
+
+					ia.client:emit("messageCommand", ia, data, data.message)
+				elseif data.type == userType then
+					data.member = data.resolved.members[data.target_id]
+
+					ia.client:emit("userCommand", ia, data, data.member)
+				end
 			elseif ia.type == autocompleteType then
-				local data = AugmentInteractionData(ia)
+				local data = ia.data
+
+				AugmentResolved(ia)
+
+				data.parsed_options = ParseOptions(data.options, data.resolved)
 				data.focused, data.focused_option = FindFocused(data.options)
 
-				ia.client:emit("applicationAutocomplete", ia, data, data.focused, data.parsed_options)
+				ia.client:emit("slashCommandAutocomplete", ia, data, data.focused, data.parsed_options)
 			end
 		end)
 	end
