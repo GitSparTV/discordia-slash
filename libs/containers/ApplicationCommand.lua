@@ -25,6 +25,14 @@ function ApplicationCommand:__init(data, parent)
 	end
 end
 
+function ApplicationCommand:getPermissions(guild_id)
+	return self.client:getApplicationCommandPermissions(guild_id, self.id)
+end
+
+function ApplicationCommand:editPermissions(guild_id, payload)
+	return self.client:editApplicationCommandPermissions(guild_id, self.id, payload)
+end
+
 function get:guild()
   return self._guild
 end
