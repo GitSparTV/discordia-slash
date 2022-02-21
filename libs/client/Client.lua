@@ -1,9 +1,7 @@
 local Client = {}
-
 local discordia = require("discordia")
 require("discordia-interactions")
 
-local API = require("./API")
 local Cache = discordia.class.classes.Cache
 local ApplicationCommand = require("containers/ApplicationCommand")
 
