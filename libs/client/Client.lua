@@ -194,11 +194,9 @@ local function FindFocused(options)
 		if type == subCommandOptionType or type == subCommandGroupOptionType then
 			focused[name], focused_object = FindFocused(v.options)
 
-			if focused_object then
-				break
-			end 
+			if focused_object then break end
 		elseif v.focused then
-			-- Autocomplete is made only for primitive types, so we just use v.value
+			-- Autocomplete can be applied only for primitive types, so we just use v.value
 			focused[name] = v.value
 			focused_object = v
 			break
