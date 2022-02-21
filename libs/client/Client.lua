@@ -87,30 +87,52 @@ function Client:editApplicationCommandPermissions(guild_id, id, payload)
 	end
 end
 
-local function AugmentResolved(resolved, ia)
+local function AugmentResolved(ia)
+	local resolved = ia.data.resolved
+
 	if not resolved then return end
 
 	local guild = ia.guild
-	local client = ia.parent
-	local members = resolved.members
-	local channels = resolved.channels
-	local users = resolved.users
-	local roles = resolved.roles
+	local client = ia.client
 
-	for k, v in pairs(members) do
-		members[k] = guild:getMember(k)
+	do
+		local members = resolved.members
+
+		if members then
+			for k, v in pairs(members) do
+				members[k] = guild:getMember(k)
+			end
+		end
 	end
 
-	for k, v in pairs(channels) do
-		channels[k] = guild:getChannel(k)
+	do
+		local channels = resolved.channels
+
+		if channels then
+			for k, v in pairs(channels) do
+				channels[k] = guild:getChannel(k)
+			end
+		end
 	end
 
-	for k, v in pairs(users) do
-		users[k] = client._users:_insert(v)
+	do
+		local users = resolved.users
+
+		if users then
+			for k, v in pairs(users) do
+				users[k] = client._users:_insert(v)
+			end
+		end
 	end
 
-	for k, v in pairs(roles) do
-		roles[k] = guild._roles:_insert(v)
+	do
+		local roles = resolved.roles
+
+		if roles then
+			for k, v in pairs(roles) do
+				roles[k] = guild._roles:_insert(v)
+			end
+		end
 	end
 end
 
@@ -169,8 +191,6 @@ local function FindFocused(options)
 end
 
 do
-	local applicationCommandType = discordia.enums.interactionType.applicationCommand
-	local autocompleteType = discordia.enums.interactionType.applicationCommandAutocomplete
 	local chatInputType = discordia.enums.appCommandType.chatInput
 	local userType = discordia.enums.appCommandType.user
 	local messageType = discordia.enums.appCommandType.message
@@ -178,26 +198,32 @@ do
 	local function AugmentInteractionData(ia)
 		local data = ia.data
 
-		AugmentResolved(data.resolved, ia)
+		AugmentResolved(ia)
 
 		if data.type == chatInputType then
 			data.parsed_options = ParseOptions(data.options, data.resolved)
 
-			if ia.type == autocompleteType then
-				data.focused = FindFocused(data.options)
-			end
+		elseif data.type == messageType then
+
 		end
 
 		return data
 	end
 
-	function Client:useSlashCommands()
+	local applicationCommandType = discordia.enums.interactionType.applicationCommand
+	local autocompleteType = discordia.enums.interactionType.applicationCommandAutocomplete
 
+	function Client:useSlashCommands()
 		self:on("interactionCreate", function(ia)
 			if ia.type == applicationCommandType then
-				ia._parent:emit("applicationCommand", ia, AugmentInteractionData(ia))
-			elseif ia.type == autocompleteType then 
-				ia._parent:emit("applicationAutocomplete", ia, AugmentInteractionData(ia))
+				local data = AugmentInteractionData(ia)
+
+				ia.client:emit("applicationCommand", ia, data, data.parsed_options)
+			elseif ia.type == autocompleteType then
+				local data = AugmentInteractionData(ia)
+				data.focused, data.focused_option = FindFocused(data.options)
+
+				ia.client:emit("applicationAutocomplete", ia, data, data.focused, data.parsed_options)
 			end
 		end)
 	end
