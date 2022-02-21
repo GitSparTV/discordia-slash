@@ -13,8 +13,8 @@ function ApplicationCommand:__init(data, parent)
 	self._name = data.name
 	self._description = data.description
 	self._options = data.options
- 	self._default_permission = data.default_permission
- 	self._version = data.version
+	self._default_permission = data.default_permission
+	self._version = data.version
 
 	do
 		local guildId = data.guild_id
