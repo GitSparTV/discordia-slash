@@ -43,4 +43,17 @@ do
 	end
 end
 
-return {}
+return {
+	util = {
+		appcmd = function(client, guild)
+			local appcmd = require("./util/appcmd.lua")
+
+			appcmd(client, guild)
+		end,
+		test = function(client, guild)
+			local test = require("./util/test.lua")
+
+			test(client, guild)
+		end,
+	}
+}
