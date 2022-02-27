@@ -137,6 +137,10 @@ endpoints["permissions.set"] = function(ia, cmd, args)
 end
 
 function endpoints.create(ia, cmd, args)
+	if args.type ~= dia.enums.appCommandType.chatInput then
+		args.description = nil
+	end
+
 	local cmd, err = ia.client:createGuildApplicationCommand(ia.guild.id, {
 		name = args.name,
 		description = args.description,
