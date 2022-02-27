@@ -42,7 +42,7 @@ function ApplicationCommand:delete()
 end
 
 function get:guild()
-  return self._guild
+	return self._guild
 end
 
 function get:type()
@@ -60,27 +60,27 @@ function get:printableType()
 end
 
 function get:application_id()
-  return self._application_id
+	return self._application_id
 end
 
 function get:name()
-  return self._name
+	return self._name
 end
 
 function get:description()
-  return self._description
+	return self._description
 end
 
 function get:options()
-  return self._options
+	return self._options
 end
 
 function get:default_permission()
-  return self._default_permission
+	return self._default_permission
 end
 
 function get:version()
-  return self._version
+	return self._version
 end
 
 return ApplicationCommand
