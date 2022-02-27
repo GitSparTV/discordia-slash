@@ -538,6 +538,10 @@ local function entry(CLIENT, GUILD)
 
 				for k, v in pairs(cmds) do
 					if value == "" or string.find(v.name, value, 1, true) or string.find(v.id, value, 1, true) then
+						if #ac == 25 then
+							break
+						end
+
 						ac[#ac + 1] = tools.choice(tools.serializeApplicationCommand(v), k)
 					end
 				end
