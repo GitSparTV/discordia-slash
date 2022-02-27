@@ -368,7 +368,18 @@ end
 
 local option_actions = {
 	create = function(ia, where, args)
-		where[#where + 1] = {
+		local place = #where + 1
+
+		if args.required then
+			for k, v in ipairs(where) do
+				if not v.required then
+					place = k
+					break
+				end
+			end
+		end
+
+		table.insert(where, place, {
 			type = args.type,
 			name = args.name,
 			description = args.description,
@@ -377,7 +388,7 @@ local option_actions = {
 			min_value = args.min_value,
 			max_value = args.max_value,
 			autocomplete = args.autocomplete
-		}
+		})
 
 		return true
 	end,
