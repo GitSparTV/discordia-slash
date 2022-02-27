@@ -26,11 +26,19 @@ function ApplicationCommand:__init(data, parent)
 end
 
 function ApplicationCommand:getPermissions(guild_id)
-	return self.client:getApplicationCommandPermissions(guild_id, self.id)
+	return self.client:getApplicationCommandPermissions(self.guild.id, self.id)
 end
 
-function ApplicationCommand:editPermissions(guild_id, payload)
-	return self.client:editApplicationCommandPermissions(guild_id, self.id, payload)
+function ApplicationCommand:editPermissions(payload)
+	return self.client:editApplicationCommandPermissions(self.guild.id, self.id, payload)
+end
+
+function ApplicationCommand:delete()
+	if self.guild then
+		return self.client:deleteGuildApplicationCommand(self.guild.id, self.id)
+	else
+		error("not implemented")
+	end
 end
 
 function get:guild()
