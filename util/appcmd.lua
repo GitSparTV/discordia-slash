@@ -1,32 +1,17 @@
 local dia = require("discordia")
 
-local function SerializeApplicationCommand(cmd)
-	return "`" .. cmd.name .. "` [" .. cmd.printableType .. "] (" .. cmd.id .. ")"
-end
+local tools = require("./tools.lua")
 
 local function PrintPermissionValue(value)
 	return value and "**allowed**" or "**disallowed**"
-end
-
-local function SendError(ia, err, debug)
-	print("InteractionError", err)
-
-	if debug then
-		print(debug, "---")
-	end
-
-	if debug then
-		ia:reply("**Error**\n" .. tostring(err) .. "\n```lua\n" .. tostring(debug) .. "\n```", true)
-	else
-		ia:reply("**Error**\n" .. tostring(err), true)
-	end
 end
 
 local function DumpPermissions(perms)
 	local result = {}
 
 	for k, v in ipairs(perms.permissions) do
-		result[k] = (v.type == dia.enums.appCommandPermissionType.role and "<@&" or "<@") .. v.id .. ">: " .. PrintPermissionValue(v.permission)
+		result[k] = (v.type == dia.enums.appCommandPermissionType.role and "<@&" or "<@") .. v.id
+			.. ">: " .. PrintPermissionValue(v.permission)
 	end
 
 	return table.concat(result, "\n")
@@ -38,7 +23,7 @@ local function DumpPermissionsList(list, client, guild_id)
 
 	for k, v in ipairs(list) do
 		local cmd = cmds:get(v.id)
-		result[#result + 1] = SerializeApplicationCommand(cmd)
+		result[#result + 1] = tools.serializeApplicationCommand(cmd)
 		result[#result + 1] = "Everyone: " .. PrintPermissionValue(cmd.default_permission)
 		result[#result + 1] = DumpPermissions(v)
 		result[#result + 1] = ""
@@ -53,8 +38,9 @@ local function FindLevel(ia, root_options, path)
 
 		for k, v in ipairs(root_options) do
 			if v.name == level then
-				if v.type ~= dia.enums.appCommandOptionType.subCommand and v.type ~= dia.enums.appCommandOptionType.subCommandGroup then
-					return SendError(ia, level .. "is not a subcommand/group")
+				if v.type ~= dia.enums.appCommandOptionType.subCommand
+					and v.type ~= dia.enums.appCommandOptionType.subCommandGroup then
+					return tools.argError(ia, "where", level .. "is not a subcommand/group")
 				end
 
 				if not v.options then
@@ -67,7 +53,7 @@ local function FindLevel(ia, root_options, path)
 		end
 
 		if not option then
-			return SendError(ia, "Subcommand/Group " .. level .. " doesn't exist")
+			return tools.argError(ia, "where", "Subcommand/Group " .. level .. " doesn't exist")
 		end
 
 		root_options = option
@@ -76,19 +62,16 @@ local function FindLevel(ia, root_options, path)
 	return root_options
 end
 
-local endpoints = {
-	permissions = {},
-	option = {}
-}
+local endpoints = {}
 
-function endpoints.permissions.get(ia, cmd, args)
+endpoints["permissions.get"] = function(ia, cmd, args)
 	local id = args.id
 
 	if not id then
 		local perms, err = ia.client:getGuildApplicationCommandPermissions(ia.guild.id)
 
 		if not perms then
-			return SendError(ia, err)
+			return tools.userError(ia, err)
 		end
 
 		ia:reply(DumpPermissionsList(perms, ia.client, ia.guild.id), true)
@@ -96,10 +79,11 @@ function endpoints.permissions.get(ia, cmd, args)
 		local cmd, err = ia.client:getGuildApplicationCommand(ia.guild.id, id)
 
 		if not cmd then
-			return SendError(ia, err)
+			return tools.argError(ia, "id", err)
 		end
 
-		local result = SerializeApplicationCommand(cmd) .. "\nEveryone: " .. PrintPermissionValue(cmd.default_permission)
+		local result = tools.serializeApplicationCommand(cmd)
+			.. "\nEveryone: " .. PrintPermissionValue(cmd.default_permission)
 		local perms = cmd:getPermissions()
 
 		if perms then
@@ -113,12 +97,12 @@ end
 local rolePermissionType = dia.enums.appCommandPermissionType.role
 local userPermissionType = dia.enums.appCommandPermissionType.user
 
-function endpoints.permissions.set(ia, cmd, args)
+endpoints["permissions.set"] = function(ia, cmd, args)
 	local id, what, value = args.id, args.what, args.value
 	local cmd, err = ia.client:getGuildApplicationCommand(ia.guild.id, id)
 
 	if not cmd then
-		return SendError(ia, err)
+		return tools.argError(ia, "id", err)
 	end
 
 	local perms = cmd:getPermissions() or {
@@ -129,6 +113,7 @@ function endpoints.permissions.set(ia, cmd, args)
 		for k, v in ipairs(perms.permissions) do
 			if v.id == what.id then
 				table.remove(perms.permissions, k)
+
 				break
 			end
 		end
@@ -143,10 +128,12 @@ function endpoints.permissions.set(ia, cmd, args)
 	local data, err = cmd:editPermissions(perms)
 
 	if not data then
-		return SendError(ia, err)
+		return tools.userError(ia, err)
 	end
 
-	ia:reply("Changed " .. (what.__name == "Role" and "<@&" or "<@") .. what.id .. "> permission to " .. (value == 2 and "**default**" or PrintPermissionValue(value == 0)) .. " for " .. SerializeApplicationCommand(cmd), true)
+	ia:reply("Changed " .. (what.__name == "Role" and "<@&" or "<@") .. what.id .. "> permission to "
+		.. (value == 2 and "**default**" or PrintPermissionValue(value == 0))
+		.. " for " .. tools.serializeApplicationCommand(cmd), true)
 end
 
 function endpoints.create(ia, cmd, args)
@@ -158,34 +145,45 @@ function endpoints.create(ia, cmd, args)
 	})
 
 	if not cmd then
-		return SendError(ia, err)
+		return tools.userError(ia, err)
 	end
 
-	ia:reply("Successfully created " .. SerializeApplicationCommand(cmd), true)
+	ia:reply("Successfully created " .. tools.serializeApplicationCommand(cmd), true)
 end
 
 function endpoints.delete(ia, cmd, args)
 	local cmd, err = ia.client:getGuildApplicationCommand(ia.guild.id, args.id)
 
 	if not cmd then
-		return SendError(ia, err)
+		return tools.argError(ia, "id", err)
 	end
 
 	local data, err = cmd:delete()
 
 	if not data then
-		return SendError(ia, err)
+		return tools.userError(ia, err)
 	end
 
-	ia:reply("Successfully deleted " .. SerializeApplicationCommand(cmd), true)
+	ia:reply("Successfully deleted " .. tools.serializeApplicationCommand(cmd), true)
 end
 
 function endpoints.code(ia, cmd, args)
-	local data, err = ia.client._api:getGuildApplicationCommand(ia.client:getApplicationInformation().id, ia.guild.id, args.id)
+	local data, err = ia.client._api:getGuildApplicationCommand(ia.client:getApplicationInformation().id,
+		ia.guild.id, args.id)
 
-	p(data, err)
+	if not data then
+		return tools.argError(ia, "id", err)
+	end
 
-	ia:reply("See console", true)
+	local json = require("json").encode(data)
+
+	if #json > 2000 then
+		p(data)
+
+		json = "See console"
+	end
+
+	tools.tryReply(ia, json, true)
 end
 
 local printableOptionType = {
@@ -234,10 +232,12 @@ local function PrintOptions(options, inserter, indent)
 			attributes[#attributes + 1] = "autocomplete"
 		end
 
-		inserter(indent .. (k == last and "└─" or "├─") .. " `" .. v.name .. "` (" .. printableOptionType[v.type] .. ") – *" .. v.description .. "*" .. (#attributes == 0 and "" or (" [" .. table.concat(attributes, ", ") .. "]")))
+		inserter(indent .. (k == last and "└─" or "├─") .. " `" .. v.name .. "` ("
+			.. printableOptionType[v.type] .. ") – *" .. v.description .. "*"
+			.. (#attributes == 0 and "" or (" [" .. table.concat(attributes, ", ") .. "]")))
 
 		if v.options then
-			PrintOptions(v.options, inserter, k == last and indent .. "        " or indent .. "│       ")
+			PrintOptions(v.options, inserter, k == last and indent .. "      " or indent .. "│     ")
 		end
 	end
 end
@@ -253,10 +253,10 @@ function endpoints.get(ia, cmd, args)
 		local cmd, err = ia.client:getGuildApplicationCommand(ia.guild.id, args.id)
 
 		if not cmd then
-			return SendError(ia, err)
+			return tools.argError(ia, "id", err)
 		end
 
-		insert(SerializeApplicationCommand(cmd))
+		insert(tools.serializeApplicationCommand(cmd))
 
 		if cmd.description ~= "" then
 			insert("*" .. cmd.description .. "*")
@@ -278,11 +278,7 @@ function endpoints.get(ia, cmd, args)
 			result = "See console"
 		end
 
-		local success, err = ia:reply(result, true)
-
-		if not success then
-			SendError(ia, err)
-		end
+		tools.tryReply(ia, result, true)
 
 		return
 	end
@@ -345,18 +341,14 @@ function endpoints.get(ia, cmd, args)
 		result = "See console"
 	end
 
-	local success, err = ia:reply(result, true)
-
-	if not success then
-		SendError(ia, err)
-	end
+	tools.tryReply(ia, result, true)
 end
 
 function endpoints.edit(ia, cmd, args)
 	local cmd, err = ia.client:getGuildApplicationCommand(ia.guild.id, args.id)
 
 	if not cmd then
-		return SendError(ia, err)
+		return tools.argError(ia, "id", err)
 	end
 
 	local data, err = ia.client:editGuildApplicationCommand(ia.guild.id, cmd.id, {
@@ -364,10 +356,10 @@ function endpoints.edit(ia, cmd, args)
 	})
 
 	if not data then
-		return SendError(ia, err)
+		return tools.argError(ia, "value", err)
 	end
 
-	ia:reply("Changed " .. args.what .. " to " .. args.value .. " in " .. SerializeApplicationCommand(cmd), true)
+	ia:reply("Changed " .. args.what .. " to " .. args.value .. " in " .. tools.serializeApplicationCommand(cmd), true)
 end
 
 local option_actions = {
@@ -403,7 +395,7 @@ local option_actions = {
 			end
 
 			if not found then
-				return SendError(ia, "Option `" .. (args.where and (args.where .. ".") or "") .. args.what .. "` not found")
+				return tools.argError(ia, "what` or `where", "Option `" .. (args.where and (args.where .. ".") or "") .. args.what .. "` not found")
 			end
 		end
 
@@ -432,7 +424,7 @@ local option_actions = {
 		end
 
 		if not option then
-			return SendError(ia, "Option `" .. (args.where and (args.where .. ".") or "") .. args.what .. "` not found")
+			return tools.argError(ia, "what` or `where", "Option `" .. (args.where and (args.where .. ".") or "") .. args.what .. "` not found")
 		end
 
 		local value = args.choice_value
@@ -441,7 +433,7 @@ local option_actions = {
 			local number = tonumber(value)
 
 			if not number then
-				return SendError(ia, "Choice value `" .. value .. "` can't be casted to number")
+				return tools.argError(ia, "choice_value", "Choice value `" .. value .. "` can't be casted to number")
 			end
 
 			value = math.floor(number)
@@ -449,7 +441,7 @@ local option_actions = {
 			local number = tonumber(value)
 
 			if not number then
-				return SendError(ia, "Choice value `" .. value .. "` can't be casted to number")
+				return tools.argError(ia, "choice_value", "Choice value `" .. value .. "` can't be casted to number")
 			end
 
 			value = number
@@ -474,7 +466,7 @@ function endpoints.option(ia, cmd, args, action, action_report)
 	local cmd, err = ia.client:getGuildApplicationCommand(ia.guild.id, args.id)
 
 	if not cmd then
-		return SendError(ia, err)
+		return tools.argError(ia, "id", err)
 	end
 
 	local options = cmd.options or {}
@@ -492,10 +484,26 @@ function endpoints.option(ia, cmd, args, action, action_report)
 	local data, err = ia.client:editGuildApplicationCommand(ia.guild.id, cmd.id, {options = options})
 
 	if not data then
-		return SendError(ia, err)
+		return tools.userError(ia, err)
 	end
 
-	ia:reply(action_report .. (args.where and (args.where .. ".") or "") .. (args.name or args.what) .. "` option in " .. SerializeApplicationCommand(cmd), true)
+	ia:reply(action_report .. (args.where and (args.where .. ".") or "") .. (args.name or args.what) .. "` option in " .. tools.serializeApplicationCommand(cmd), true)
+end
+
+endpoints["option.create"] = function(ia, cmd, args)
+	return endpoints.option(ia, cmd, args, "create", "Added `")
+end
+
+endpoints["option.delete"] = function(ia, cmd, args)
+	return endpoints.option(ia, cmd, args, "delete", "Removed `")
+end
+
+endpoints["option.move"] = function(ia, cmd, args)
+	return endpoints.option(ia, cmd, args, "move", "Moved `")
+end
+
+endpoints["option.choice"] = function(ia, cmd, args)
+	return endpoints.option(ia, cmd, args, "choice", "Added choice for `")
 end
 
 local function entry(CLIENT, GUILD)
@@ -505,35 +513,15 @@ local function entry(CLIENT, GUILD)
 
 	CLIENT:on("slashCommand", function(ia, cmd, args)
 		if cmd.name == "appcmd" then
-			if args.permissions then
-				if args.permissions.get then
-					return endpoints.permissions.get(ia, cmd, args.permissions.get)
-				elseif args.permissions.set then
-					return endpoints.permissions.set(ia, cmd, args.permissions.set)
-				end
-			elseif args.create then
-				return endpoints.create(ia, cmd, args.create)
-			elseif args.delete then
-				return endpoints.delete(ia, cmd, args.delete)
-			elseif args.get then
-				return endpoints.get(ia, cmd, args.get)
-			elseif args.code then
-				return endpoints.code(ia, cmd, args.code)
-			elseif args.edit then
-				return endpoints.edit(ia, cmd, args.edit)
-			elseif args.option then
-				if args.option.create then
-					return endpoints.option(ia, cmd, args.option.create, "create", "Added `")
-				elseif args.option.delete then
-					return endpoints.option(ia, cmd, args.option.delete, "delete", "Removed `")
-				elseif args.option.move then
-					return endpoints.option(ia, cmd, args.option.move, "move", "Moved `")
-				elseif args.option.choice then
-					return endpoints.option(ia, cmd, args.option.choice, "choice", "Added choice for `")
-				end
+			local subcmd_args, path = tools.getSubCommand(cmd)
+
+			local endpoint = endpoints[path]
+
+			if endpoint then
+				return endpoint(ia, cmd, subcmd_args)
 			end
 
-			return SendError(ia, "Unhandled request for /appcmd")
+			return tools.userError(ia, "Unhandled request for /appcmd")
 		end
 	end)
 
@@ -546,10 +534,7 @@ local function entry(CLIENT, GUILD)
 
 				for k, v in pairs(cmds) do
 					if value == "" or string.find(v.name, value, 1, true) or string.find(v.id, value, 1, true) then
-						ac[#ac + 1] = {
-							name = SerializeApplicationCommand(v),
-							value = k
-						}
+						ac[#ac + 1] = tools.choice(tools.serializeApplicationCommand(v), k)
 					end
 				end
 
@@ -606,18 +591,9 @@ local function entry(CLIENT, GUILD)
 									description = "Value to set",
 									required = true,
 									choices = {
-										{
-											name = "Allow",
-											value = 0
-										},
-										{
-											name = "Disallow",
-											value = 1
-										},
-										{
-											name = "Default",
-											value = 2
-										},
+										tools.choice("Allow", 0),
+										tools.choice("Disallow", 1),
+										tools.choice("Default", 2)
 									}
 								},
 							}
@@ -646,18 +622,9 @@ local function entry(CLIENT, GUILD)
 							name = "type",
 							description = "Command type (Slash command by default)",
 							choices = {
-								{
-									name = "chatInput (Slash Command)",
-									value = dia.enums.appCommandType.chatInput,
-								},
-								{
-									name = "user (User Command)",
-									value = dia.enums.appCommandType.user,
-								},
-								{
-									name = "message (Message Command)",
-									value = dia.enums.appCommandType.message,
-								},
+								tools.choice("chatInput (Slash Command)", dia.enums.appCommandType.chatInput),
+								tools.choice("user (User Command)", dia.enums.appCommandType.user),
+								tools.choice("message (Message Command)", dia.enums.appCommandType.message)
 							},
 						},
 						{
