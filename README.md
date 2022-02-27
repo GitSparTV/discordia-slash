@@ -8,7 +8,7 @@ __[<img src="https://raw.githubusercontent.com/GitSparTV/GitSparTV/681727efe146a
 ---
 
 ## Note
-API fro global application commands is provided but not exposed. This is meant to be used in specific guild.
+API for global application commands is provided but not exposed. This is meant to be used in specific guild.
 
 No documentation yet, version 2.0
 
