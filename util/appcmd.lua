@@ -188,7 +188,171 @@ function endpoints.code(ia, cmd, args)
 	ia:reply("See console", true)
 end
 
-function endpoints.field(ia, cmd, args)
+local printableOptionType = {
+	[dia.enums.appCommandOptionType.subCommand] = "Subcommand",
+	[dia.enums.appCommandOptionType.subCommandGroup] = "Subcommand Group",
+	[dia.enums.appCommandOptionType.string] = "String",
+	[dia.enums.appCommandOptionType.integer] = "Integer",
+	[dia.enums.appCommandOptionType.boolean] = "Boolean",
+	[dia.enums.appCommandOptionType.user] = "User",
+	[dia.enums.appCommandOptionType.channel] = "Channel",
+	[dia.enums.appCommandOptionType.role] = "Role",
+	[dia.enums.appCommandOptionType.mentionable] = "Mentionable",
+	[dia.enums.appCommandOptionType.number] = "Number",
+	[dia.enums.appCommandOptionType.attachment] = "Attachment",
+}
+
+local function PrintOptions(options, inserter, indent)
+	indent = indent or ""
+
+	local last = #options
+
+	for k, v in ipairs(options) do
+		local attributes = {}
+
+		if v.required then
+			attributes[#attributes + 1] = "required"
+		end
+
+		if v.choices then
+			attributes[#attributes + 1] = "choices:" .. #v.choices
+		end
+
+		if v.channel_types then
+			attributes[#attributes + 1] = "channel_types:" .. table.concat(v.channel_types, "+")
+		end
+
+		if v.min_value then
+			attributes[#attributes + 1] = "min_value:" .. v.min_value
+		end
+
+		if v.max_value then
+			attributes[#attributes + 1] = "max_value:" .. v.max_value
+		end
+
+		if v.autocomplete then
+			attributes[#attributes + 1] = "autocomplete"
+		end
+
+		inserter(indent .. (k == last and "└─" or "├─") .. " `" .. v.name .. "` (" .. printableOptionType[v.type] .. ") – *" .. v.description .. "*" .. (#attributes == 0 and "" or (" [" .. table.concat(attributes, ", ") .. "]")))
+
+		if v.options then
+			PrintOptions(v.options, inserter, k == last and indent .. "        " or indent .. "│       ")
+		end
+	end
+end
+
+function endpoints.get(ia, cmd, args)
+	local result = {}
+
+	local function insert(v)
+		result[#result + 1] = v
+	end
+
+	if args.id then
+		local cmd, err = ia.client:getGuildApplicationCommand(ia.guild.id, args.id)
+
+		if not cmd then
+			return SendError(ia, err)
+		end
+
+		insert(SerializeApplicationCommand(cmd))
+
+		if cmd.description ~= "" then
+			insert("*" .. cmd.description .. "*")
+		end
+
+		insert("Allowed for everyone: " .. PrintPermissionValue(cmd.default_permission))
+
+		if cmd.options then
+			insert("│")
+
+			PrintOptions(cmd.options, insert)
+		end
+
+		result = table.concat(result, "\n")
+
+		if #result > 2000 then
+			print(result)
+
+			result = "See console"
+		end
+
+		local success, err = ia:reply(result, true)
+
+		if not success then
+			SendError(ia, err)
+		end
+
+		return
+	end
+
+	insert("Application commands in this guild:")
+
+	local slash, user, message = {}, {}, {}
+
+	for k, v in pairs(ia.client:getGuildApplicationCommands(ia.guild.id)) do
+		if v.type == dia.enums.appCommandType.chatInput then
+			slash[#slash + 1] = v
+		elseif v.type == dia.enums.appCommandType.user then
+			user[#user + 1] = v
+		elseif v.type == dia.enums.appCommandType.message then
+			message[#message + 1] = v
+		end
+	end
+
+	local function sorter(left, right)
+		return left.name < right.name
+	end
+
+	table.sort(slash, sorter)
+	table.sort(user, sorter)
+	table.sort(message, sorter)
+
+	if #slash ~= 0 then
+		insert("Slash commands:")
+
+		for k, v in ipairs(slash) do
+			insert("`" .. v.name .. "` (" .. v.id .. ") – *" .. v.description .. "*")
+		end
+
+		insert("")
+	end
+
+	if #user ~= 0 then
+		insert("User commands:")
+
+		for k, v in ipairs(user) do
+			insert("`" .. v.name .. "` (" .. v.id .. ")")
+		end
+
+		insert("")
+	end
+
+	if #message ~= 0 then
+		insert("Message commands:")
+
+		for k, v in ipairs(message) do
+			insert("`" .. v.name .. "` (" .. v.id .. ")")
+		end
+	end
+
+	result = table.concat(result, "\n")
+
+	if #result > 2000 then
+		print(result)
+
+		result = "See console"
+	end
+
+	local success, err = ia:reply(result, true)
+
+	if not success then
+		SendError(ia, err)
+	end
+end
+
+function endpoints.edit(ia, cmd, args)
 	local cmd, err = ia.client:getGuildApplicationCommand(ia.guild.id, args.id)
 
 	if not cmd then
@@ -206,87 +370,107 @@ function endpoints.field(ia, cmd, args)
 	ia:reply("Changed " .. args.what .. " to " .. args.value .. " in " .. SerializeApplicationCommand(cmd), true)
 end
 
-function endpoints.option.create(ia, cmd, args)
-	local cmd, err = ia.client:getGuildApplicationCommand(ia.guild.id, args.id)
+local option_actions = {
+	create = function(ia, where, args)
+		where[#where + 1] = {
+			type = args.type,
+			name = args.name,
+			description = args.description,
+			options = (args.type == dia.enums.appCommandOptionType.subCommand or args.type == dia.enums.appCommandOptionType.subCommandGroup) and {} or nil,
+			required = args.required,
+			min_value = args.min_value,
+			max_value = args.max_value,
+			autocomplete = args.autocomplete
+		}
 
-	if not cmd then
-		return SendError(ia, err)
-	end
+		return true
+	end,
+	delete = function(ia, where, args)
+		if args.what == "/all" then
+			for k in ipairs(where) do
+				where[k] = nil
+			end
+		else
+			local found = false
 
-	local options = cmd.options or {}
+			for k, v in ipairs(where) do
+				if v.name == args.what then
+					table.remove(where, k)
+					found = true
 
-	local where = options
+					break
+				end
+			end
 
-	if args.where then
-		where = FindLevel(ia, options, args.where)
-	end
-
-	where[#where + 1] = {
-		type = args.type,
-		name = args.name,
-		description = args.description,
-		options = (args.type == dia.enums.appCommandOptionType.subCommand or args.type == dia.enums.appCommandOptionType.subCommandGroup) and {} or nil,
-		required = args.required,
-		min_value = args.min_value,
-		max_value = args.max_value,
-		autocomplete = args.autocomplete
-	}
-
-	local data, err = ia.client:editGuildApplicationCommand(ia.guild.id, cmd.id, {options = options})
-
-	if not data then
-		return SendError(ia, err)
-	end
-
-	ia:reply("Added `" .. (args.where and (args.where .. ".") or "") .. args.name .. "` option to " .. SerializeApplicationCommand(cmd), true)
-end
-
-function endpoints.option.delete(ia, cmd, args)
-	local cmd, err = ia.client:getGuildApplicationCommand(ia.guild.id, args.id)
-
-	if not cmd then
-		return SendError(ia, err)
-	end
-
-	local options = cmd.options or {}
-
-	local where = options
-
-	if args.where then
-		where = FindLevel(ia, options, args.where)
-	end
-
-	if args.what == "/all" then
-		for k in ipairs(where) do
-			where[k] = nil
+			if not found then
+				return SendError(ia, "Option `" .. (args.where and (args.where .. ".") or "") .. args.what .. "` not found")
+			end
 		end
-	else
-		local found = false
 
+		return true
+	end,
+	move = function(ia, where, args)
 		for k, v in ipairs(where) do
 			if v.name == args.what then
-				table.remove(where, k)
-				found = true
+				table.insert(where, args.place, table.remove(where, k))
 
 				break
 			end
 		end
 
-		if not found then
+		return true
+	end,
+	choice = function(ia, where, args)
+		local option
+
+		for k, v in ipairs(where) do
+			if v.name == args.what then
+				option = v
+
+				break
+			end
+		end
+
+		if not option then
 			return SendError(ia, "Option `" .. (args.where and (args.where .. ".") or "") .. args.what .. "` not found")
 		end
+
+		local value = args.choice_value
+
+		if option.type == dia.enums.appCommandOptionType.integer then
+			local number = tonumber(value)
+
+			if not number then
+				return SendError(ia, "Choice value `" .. value .. "` can't be casted to number")
+			end
+
+			value = math.floor(number)
+		elseif option.type == dia.enums.appCommandOptionType.number then
+			local number = tonumber(value)
+
+			if not number then
+				return SendError(ia, "Choice value `" .. value .. "` can't be casted to number")
+			end
+
+			value = number
+		end
+
+		local choice = {
+			name = args.choice_name,
+			value = value
+		}
+
+		local choices = option.choices or {}
+
+		choices[#choices + 1] = choice
+
+		option.choices = choices
+
+		return true
 	end
+}
 
-	local data, err = ia.client:editGuildApplicationCommand(ia.guild.id, cmd.id, {options = options})
-
-	if not data then
-		SendError(ia, err)
-	end
-
-	ia:reply("Removed `" .. (args.where and (args.where .. ".") or "") .. args.what .. "` option from " .. SerializeApplicationCommand(cmd), true)
-end
-
-function endpoints.option.move(ia, cmd, args)
+function endpoints.option(ia, cmd, args, action, action_report)
 	local cmd, err = ia.client:getGuildApplicationCommand(ia.guild.id, args.id)
 
 	if not cmd then
@@ -301,24 +485,17 @@ function endpoints.option.move(ia, cmd, args)
 		where = FindLevel(ia, options, args.where)
 	end
 
-	for k, v in ipairs(where) do
-		if v.name == args.what then
-			table.insert(where, args.place, table.remove(where, k))
-			break
-		end
+	if not option_actions[action](ia, where, args) then
+		return
 	end
 
 	local data, err = ia.client:editGuildApplicationCommand(ia.guild.id, cmd.id, {options = options})
 
-	if data then
-		ia:reply("Moved `" .. (args.where and (args.where .. ".") or "") .. args.what .. "` option in " .. SerializeApplicationCommand(cmd), true)
-	else
-		SendError(ia, err)
+	if not data then
+		return SendError(ia, err)
 	end
-end
 
-function endpoints.option.choice(ia, cmd, args)
-
+	ia:reply(action_report .. (args.where and (args.where .. ".") or "") .. (args.name or args.what) .. "` option in " .. SerializeApplicationCommand(cmd), true)
 end
 
 local function entry(CLIENT, GUILD)
@@ -338,19 +515,21 @@ local function entry(CLIENT, GUILD)
 				return endpoints.create(ia, cmd, args.create)
 			elseif args.delete then
 				return endpoints.delete(ia, cmd, args.delete)
+			elseif args.get then
+				return endpoints.get(ia, cmd, args.get)
 			elseif args.code then
 				return endpoints.code(ia, cmd, args.code)
-			elseif args.field then
-				return endpoints.field(ia, cmd, args.field)
+			elseif args.edit then
+				return endpoints.edit(ia, cmd, args.edit)
 			elseif args.option then
 				if args.option.create then
-					return endpoints.option.create(ia, cmd, args.option.create)
+					return endpoints.option(ia, cmd, args.option.create, "create", "Added `")
 				elseif args.option.delete then
-					return endpoints.option.delete(ia, cmd, args.option.delete)
+					return endpoints.option(ia, cmd, args.option.delete, "delete", "Removed `")
 				elseif args.option.move then
-					return endpoints.option.move(ia, cmd, args.option.move)
+					return endpoints.option(ia, cmd, args.option.move, "move", "Moved `")
 				elseif args.option.choice then
-					return endpoints.option.choice(ia, cmd, args.option.choice)
+					return endpoints.option(ia, cmd, args.option.choice, "choice", "Added choice for `")
 				end
 			end
 
@@ -459,7 +638,7 @@ local function entry(CLIENT, GUILD)
 						{
 							type = dia.enums.appCommandOptionType.string,
 							name = "description",
-							description = "Command description",
+							description = "Command description (ignored for user and message commands)",
 							required = true
 						},
 						{
@@ -504,6 +683,19 @@ local function entry(CLIENT, GUILD)
 				},
 				{
 					type = dia.enums.appCommandOptionType.subCommand,
+					name = "get",
+					description = "Get all commands or information about specific command",
+					options = {
+						{
+							type = dia.enums.appCommandOptionType.string,
+							name = "id",
+							description = "ApplicationCommand ID",
+							autocomplete = true,
+						}
+					}
+				},
+				{
+					type = dia.enums.appCommandOptionType.subCommand,
 					name = "code",
 					description = "Get command code",
 					options = {
@@ -518,7 +710,7 @@ local function entry(CLIENT, GUILD)
 				},
 				{
 					type = dia.enums.appCommandOptionType.subCommand,
-					name = "field",
+					name = "edit",
 					description = "Edit first-level fields",
 					options = {
 						{
