@@ -246,6 +246,9 @@ do
 				ia.client:emit("slashCommandAutocomplete", ia, data, data.focused, data.parsed_options)
 			end
 		end)
+
+		-- support chaining
+		return self
 	end
 end
 
