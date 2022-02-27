@@ -55,5 +55,10 @@ return {
 
 			test(client, guild)
 		end,
+		tools = function()
+			local tools = require("./util/tools.lua")
+
+			return tools
+		end
 	}
 }
