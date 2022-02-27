@@ -215,7 +215,7 @@ do
 	local applicationCommandType = discordia.enums.interactionType.applicationCommand
 	local autocompleteType = discordia.enums.interactionType.applicationCommandAutocomplete
 
-	function Client:useSlashCommands()
+	function Client:useApplicationCommands()
 		self:on("interactionCreate", function(ia)
 			print("IA by " .. ia.member.name, ia.data.name)
 
