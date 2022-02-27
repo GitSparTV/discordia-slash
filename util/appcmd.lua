@@ -923,8 +923,6 @@ local function entry(CLIENT, GUILD)
 			default_permission = false
 		})
 
-		print(appcmd, err)
-
 		appcmd:editPermissions({
 			permissions = {
 				{

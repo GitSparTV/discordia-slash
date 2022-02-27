@@ -217,8 +217,6 @@ do
 
 	function Client:useApplicationCommands()
 		self:on("interactionCreate", function(ia)
-			print("IA by " .. ia.member.name, ia.data.name)
-
 			if ia.type == applicationCommandType then
 				local data = ia.data
 
