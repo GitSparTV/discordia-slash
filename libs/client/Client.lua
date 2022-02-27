@@ -156,6 +156,8 @@ local mentionableOptionType = discordia.enums.appCommandOptionType.mentionable
 local attachmentOptionType = discordia.enums.appCommandOptionType.attachment
 
 local function ParseOptions(options, resolved)
+	if not options then return end
+
 	local parsed_options = {}
 
 	for k, v in ipairs(options) do
