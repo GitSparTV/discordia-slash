@@ -364,14 +364,16 @@ function endpoints.edit(ia, cmd, args)
 	end
 
 	local data, err = ia.client:editGuildApplicationCommand(ia.guild.id, cmd.id, {
-		[args.what] = args.what == "default_permission" and (args.value == "true" and true or false) or args.value
+		name = args.name,
+		description = args.description,
+		default_permission = args.default_permission,
 	})
 
 	if not data then
 		return tools.argError(ia, "value", err)
 	end
 
-	ia:reply("Changed " .. args.what .. " to " .. args.value .. " in " .. tools.serializeApplicationCommand(cmd), true)
+	ia:reply("Changed fields in " .. tools.serializeApplicationCommand(cmd), true)
 end
 
 local option_actions = {
