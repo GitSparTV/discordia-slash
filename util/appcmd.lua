@@ -436,6 +436,58 @@ local option_actions = {
 
 		return true
 	end,
+	edit = function(ia, where, args)
+		local found = false
+
+		for k, v in ipairs(where) do
+			if v.name == args.what then
+				where = v
+
+				found = true
+			end
+		end
+
+		if not found then
+			return tools.argError(ia, "what` or `where", "Option `" .. (args.where and (args.where .. ".") or "") .. args.what .. "` not found")
+		end
+
+		if args.type then
+			where.type = args.type
+		end
+
+		if args.name then
+			where.name = args.name
+		end
+
+		if args.description then
+			where.description = args.description
+		end
+
+		if args.required ~= nil then
+			where.required = args.required
+		end
+
+		if args.min_value then
+			where.min_value = args.min_value
+		end
+
+		if args.max_value then
+			where.max_value = args.max_value
+		end
+
+		if args.autocomplete ~= nil then
+			where.autocomplete = args.autocomplete
+		end
+
+		if args.channel_types then
+			local channel_types = {}
+
+			for type in string.gmatch(args.channel_types, "%d+") do
+				channel_types[#channel_types + 1] = tonumber(type)
+			end
+
+			where.channel_types = channel_types
+		end
 
 		return true
 	end,
@@ -554,6 +606,10 @@ end
 
 endpoints["option.create"] = function(ia, cmd, args)
 	return endpoints.option(ia, cmd, args, "create", "Added `")
+end
+
+endpoints["option.edit"] = function(ia, cmd, args)
+	return endpoints.option(ia, cmd, args, "edit", "Edited `")
 end
 
 endpoints["option.delete"] = function(ia, cmd, args)
