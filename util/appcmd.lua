@@ -811,30 +811,19 @@ local function entry(CLIENT, GUILD)
 						},
 						{
 							type = dia.enums.appCommandOptionType.string,
-							name = "what",
-							description = "Field name",
-							required = true,
-							choices = {
-								{
-									name = "Name",
-									value = "name"
-								},
-								{
-									name = "Description",
-									value = "description"
-								},
-								{
-									name = "Default Permission",
-									value = "default_permission"
-								}
-							}
+							name = "name",
+							description = "Command name",
 						},
 						{
 							type = dia.enums.appCommandOptionType.string,
-							name = "value",
-							description = "For default_permission use `true` and `false`",
-							required = true,
+							name = "description",
+							description = "Command description (slash commands only)",
 						},
+						{
+							type = dia.enums.appCommandOptionType.boolean,
+							name = "default_permission",
+							description = "Command default permission (true by default)",
+						}
 					}
 				},
 				{
@@ -860,50 +849,17 @@ local function entry(CLIENT, GUILD)
 									description = "Option type",
 									required = true,
 									choices = {
-										{
-											name = "Subcommand",
-											value = dia.enums.appCommandOptionType.subCommand
-										},
-										{
-											name = "Subcommand group",
-											value = dia.enums.appCommandOptionType.subCommandGroup
-										},
-										{
-											name = "String",
-											value = dia.enums.appCommandOptionType.string
-										},
-										{
-											name = "Integer",
-											value = dia.enums.appCommandOptionType.integer
-										},
-										{
-											name = "Boolean",
-											value = dia.enums.appCommandOptionType.boolean
-										},
-										{
-											name = "User",
-											value = dia.enums.appCommandOptionType.user
-										},
-										{
-											name = "Channel",
-											value = dia.enums.appCommandOptionType.channel
-										},
-										{
-											name = "Role",
-											value = dia.enums.appCommandOptionType.role
-										},
-										{
-											name = "Mentionable",
-											value = dia.enums.appCommandOptionType.mentionable
-										},
-										{
-											name = "Number",
-											value = dia.enums.appCommandOptionType.number
-										},
-										{
-											name = "Attachment",
-											value = dia.enums.appCommandOptionType.attachment
-										},
+										tools.choice("Subcommand", dia.enums.appCommandOptionType.subCommand),
+										tools.choice("Subcommand group", dia.enums.appCommandOptionType.subCommandGroup),
+										tools.choice("String", dia.enums.appCommandOptionType.string),
+										tools.choice("Integer", dia.enums.appCommandOptionType.integer),
+										tools.choice("Boolean", dia.enums.appCommandOptionType.boolean),
+										tools.choice("User", dia.enums.appCommandOptionType.user),
+										tools.choice("Channel", dia.enums.appCommandOptionType.channel),
+										tools.choice("Role", dia.enums.appCommandOptionType.role),
+										tools.choice("Mentionable", dia.enums.appCommandOptionType.mentionable),
+										tools.choice("Number", dia.enums.appCommandOptionType.number),
+										tools.choice("Attachment", dia.enums.appCommandOptionType.attachment)
 									}
 								},
 								{
@@ -942,6 +898,104 @@ local function entry(CLIENT, GUILD)
 									type = dia.enums.appCommandOptionType.boolean,
 									name = "autocomplete",
 									description = "Autocompletion feature (only for string, integer and number types, false by default)",
+								},
+								{
+									type = dia.enums.appCommandOptionType.integer,
+									name = "channel_types",
+									description = "Channel types allowed to pick (Only for channel type)",
+									choices = {
+										tools.choice("Text channels", 0),
+										tools.choice("Voice channels", 1),
+										tools.choice("Text and voice channels", 2),
+										tools.choice("Categories", 3),
+										tools.choice("Stage voice channels", 4),
+										tools.choice("Voice and stage channels", 5),
+										tools.choice("Threads", 6),
+										tools.choice("Text channels and threads", 7),
+									}
+								},
+								{
+									type = dia.enums.appCommandOptionType.boolean,
+									name = "replace",
+									description = "Replace existing option"
+								}
+							}
+						},
+						{
+							type = dia.enums.appCommandOptionType.subCommand,
+							name = "edit",
+							description = "Edit option",
+							options = {
+								{
+									type = dia.enums.appCommandOptionType.string,
+									name = "id",
+									description = "ApplicationCommand ID",
+									required = true,
+									autocomplete = true,
+								},
+								{
+									type = dia.enums.appCommandOptionType.string,
+									name = "what",
+									description = "Option name",
+									required = true
+								},
+								{
+									type = dia.enums.appCommandOptionType.string,
+									name = "where",
+									description = "Option location (example: option.create) (root level by default)",
+								},
+								{
+									type = dia.enums.appCommandOptionType.integer,
+									name = "type",
+									description = "Option type",
+									choices = {
+										tools.choice("Subcommand", dia.enums.appCommandOptionType.subCommand),
+										tools.choice("Subcommand group", dia.enums.appCommandOptionType.subCommandGroup),
+										tools.choice("String", dia.enums.appCommandOptionType.string),
+										tools.choice("Integer", dia.enums.appCommandOptionType.integer),
+										tools.choice("Boolean", dia.enums.appCommandOptionType.boolean),
+										tools.choice("User", dia.enums.appCommandOptionType.user),
+										tools.choice("Channel", dia.enums.appCommandOptionType.channel),
+										tools.choice("Role", dia.enums.appCommandOptionType.role),
+										tools.choice("Mentionable", dia.enums.appCommandOptionType.mentionable),
+										tools.choice("Number", dia.enums.appCommandOptionType.number),
+										tools.choice("Attachment", dia.enums.appCommandOptionType.attachment)
+									}
+								},
+								{
+									type = dia.enums.appCommandOptionType.string,
+									name = "name",
+									description = "New option name",
+								},
+								{
+									type = dia.enums.appCommandOptionType.string,
+									name = "description",
+									description = "Option description",
+								},
+								{
+									type = dia.enums.appCommandOptionType.boolean,
+									name = "required",
+									description = "Is option required? (false by default)",
+								},
+								{
+									type = dia.enums.appCommandOptionType.number,
+									name = "min_value",
+									description = "Minimum value for the option (Only for integer and number types)",
+								},
+								{
+									type = dia.enums.appCommandOptionType.number,
+									name = "max_value",
+									description = "Maximum value for the option (Only for integer and number types)",
+								},
+								{
+									type = dia.enums.appCommandOptionType.boolean,
+									name = "autocomplete",
+									description = "Autocompletion feature (only for string, integer and number types, false by default)",
+								},
+								{
+									type = dia.enums.appCommandOptionType.string,
+									name = "channel_types",
+									description = "Channel types allowed to pick separated by space (Only for channel type) ",
 								},
 							}
 						},
