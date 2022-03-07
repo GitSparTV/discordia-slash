@@ -384,12 +384,35 @@ local option_actions = {
 			for k, v in ipairs(where) do
 				if not v.required then
 					place = k
+
 					break
 				end
 			end
 		end
 
-		table.insert(where, place, {
+		if args.channel_types then
+			local types = args.channel_types
+
+			if types == 0 then
+				args.channel_types = {0, 5, 6}
+			elseif types == 1 then
+				args.channel_types = {2}
+			elseif types == 2 then
+				args.channel_types = {0, 5, 6, 2}
+			elseif types == 3 then
+				args.channel_types = {4}
+			elseif types == 4 then
+				args.channel_types = {13}
+			elseif types == 5 then
+				args.channel_types = {2, 13}
+			elseif types == 6 then
+				args.channel_types = {10, 11, 12}
+			elseif types == 7 then
+				args.channel_types = {10, 11, 12, 0, 5, 6}
+			end
+		end
+
+		local option = {
 			type = args.type,
 			name = args.name,
 			description = args.description,
@@ -397,8 +420,22 @@ local option_actions = {
 			required = args.required,
 			min_value = args.min_value,
 			max_value = args.max_value,
-			autocomplete = args.autocomplete
-		})
+			autocomplete = args.autocomplete,
+			channel_types = args.channel_types
+		}
+
+		if args.replace then
+			for k, v in ipairs(where) do
+				if v.name == args.name then
+					where[k] = option
+				end
+			end
+		else
+			table.insert(where, place, option)
+		end
+
+		return true
+	end,
 
 		return true
 	end,
