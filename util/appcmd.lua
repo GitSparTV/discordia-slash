@@ -126,11 +126,7 @@ endpoints["permissions.set"] = function(ia, cmd, args)
 			end
 		end
 	else
-		perms.permissions[#perms.permissions + 1] = {
-			id = what.id,
-			type = what.__name == "Role" and rolePermissionType or userPermissionType,
-			permission = value == 0
-		}
+		perms.permissions[#perms.permissions + 1] = tools.permission(what, value == 0)
 	end
 
 	local data, err = cmd:editPermissions(perms)
@@ -149,12 +145,13 @@ function endpoints.create(ia, cmd, args)
 		args.description = nil
 	end
 
-	local cmd, err = ia.client:createGuildApplicationCommand(ia.guild.id, {
-		name = args.name,
-		description = args.description,
-		type = args.type,
-		default_permission = args.default_permission
-	})
+	local cmd, err = ia.client:createGuildApplicationCommand(ia.guild.id,
+		tools.applicationCommand()
+		:setName(args.name)
+		:setDescription(args.description)
+		:setType(args.type)
+		:setDefaultPermission(args.default_permission)
+		)
 
 	if not cmd then
 		return tools.userError(ia, err)
@@ -412,17 +409,15 @@ local option_actions = {
 			end
 		end
 
-		local option = {
-			type = args.type,
-			name = args.name,
-			description = args.description,
-			options = (args.type == dia.enums.appCommandOptionType.subCommand or args.type == dia.enums.appCommandOptionType.subCommandGroup) and {} or nil,
-			required = args.required,
-			min_value = args.min_value,
-			max_value = args.max_value,
-			autocomplete = args.autocomplete,
-			channel_types = args.channel_types
-		}
+		local option = tools.options()
+			:setType(args.type)
+			:setName(args.name)
+			:setDescription(args.description)
+			:setRequired(args.required)
+			:setMinValue(args.min_value)
+			:setMaxValue(args.max_value)
+			:setAutocomplete(args.autocomplete)
+			:setChannelTypes(args.channel_types)
 
 		if args.replace then
 			for k, v in ipairs(where) do
@@ -666,446 +661,150 @@ local function entry(CLIENT, GUILD)
 	end)
 
 	CLIENT:on("ready", function()
-		local appcmd, err = CLIENT:createGuildApplicationCommand(GUILD, {
-			name = "appcmd",
-			description = "Utility to edit application commands from discord",
-			type = dia.enums.appCommandType.chatInput,
-			options = {
-				{
-					type = dia.enums.appCommandOptionType.subCommandGroup,
-					name = "permissions",
-					description = "Edit command permissions",
-					options = {
-						{
-							type = dia.enums.appCommandOptionType.subCommand,
-							name = "get",
-							description = "See permissions of all commands or specific one",
-							options = {
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "id",
-									description = "ApplicationCommand ID",
-									autocomplete = true,
-								}
-							}
-						},
-						{
-							type = dia.enums.appCommandOptionType.subCommand,
-							name = "set",
-							description = "Set permission for a command",
-							options = {
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "id",
-									description = "ApplicationCommand ID",
-									required = true,
-									autocomplete = true,
-								},
-								{
-									type = dia.enums.appCommandOptionType.mentionable,
-									name = "what",
-									description = "What should have different permission",
-									required = true,
-								},
-								{
-									type = dia.enums.appCommandOptionType.integer,
-									name = "value",
-									description = "Value to set",
-									required = true,
-									choices = {
-										tools.choice("Allow", 0),
-										tools.choice("Disallow", 1),
-										tools.choice("Default", 2)
-									}
-								},
-							}
-						}
-					}
-				},
-				{
-					type = dia.enums.appCommandOptionType.subCommand,
-					name = "create",
-					description = "Create new command",
-					options = {
-						{
-							type = dia.enums.appCommandOptionType.string,
-							name = "name",
-							description = "Command name",
-							required = true
-						},
-						{
-							type = dia.enums.appCommandOptionType.string,
-							name = "description",
-							description = "Command description (ignored for user and message commands)",
-							required = true
-						},
-						{
-							type = dia.enums.appCommandOptionType.integer,
-							name = "type",
-							description = "Command type (Slash command by default)",
-							choices = {
-								tools.choice("chatInput (Slash Command)", dia.enums.appCommandType.chatInput),
-								tools.choice("user (User Command)", dia.enums.appCommandType.user),
-								tools.choice("message (Message Command)", dia.enums.appCommandType.message)
-							},
-						},
-						{
-							type = dia.enums.appCommandOptionType.boolean,
-							name = "default_permission",
-							description = "Command default permission (true by default)",
-						}
-					}
-				},
-				{
-					type = dia.enums.appCommandOptionType.subCommand,
-					name = "delete",
-					description = "Delete command",
-					options = {
-						{
-							type = dia.enums.appCommandOptionType.string,
-							name = "id",
-							description = "ApplicationCommand ID",
-							required = true,
-							autocomplete = true,
-						}
-					}
-				},
-				{
-					type = dia.enums.appCommandOptionType.subCommand,
-					name = "get",
-					description = "Get all commands or information about specific command",
-					options = {
-						{
-							type = dia.enums.appCommandOptionType.string,
-							name = "id",
-							description = "ApplicationCommand ID",
-							autocomplete = true,
-						}
-					}
-				},
-				{
-					type = dia.enums.appCommandOptionType.subCommand,
-					name = "code",
-					description = "Get command code",
-					options = {
-						{
-							type = dia.enums.appCommandOptionType.string,
-							name = "id",
-							description = "ApplicationCommand ID",
-							required = true,
-							autocomplete = true,
-						}
-					}
-				},
-				{
-					type = dia.enums.appCommandOptionType.subCommand,
-					name = "edit",
-					description = "Edit first-level fields",
-					options = {
-						{
-							type = dia.enums.appCommandOptionType.string,
-							name = "id",
-							description = "ApplicationCommand ID",
-							required = true,
-							autocomplete = true,
-						},
-						{
-							type = dia.enums.appCommandOptionType.string,
-							name = "name",
-							description = "Command name",
-						},
-						{
-							type = dia.enums.appCommandOptionType.string,
-							name = "description",
-							description = "Command description (slash commands only)",
-						},
-						{
-							type = dia.enums.appCommandOptionType.boolean,
-							name = "default_permission",
-							description = "Command default permission (true by default)",
-						}
-					}
-				},
-				{
-					type = dia.enums.appCommandOptionType.subCommandGroup,
-					name = "option",
-					description = "Option related category",
-					options = {
-						{
-							type = dia.enums.appCommandOptionType.subCommand,
-							name = "create",
-							description = "Create option",
-							options = {
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "id",
-									description = "ApplicationCommand ID",
-									required = true,
-									autocomplete = true,
-								},
-								{
-									type = dia.enums.appCommandOptionType.integer,
-									name = "type",
-									description = "Option type",
-									required = true,
-									choices = {
-										tools.choice("Subcommand", dia.enums.appCommandOptionType.subCommand),
-										tools.choice("Subcommand group", dia.enums.appCommandOptionType.subCommandGroup),
-										tools.choice("String", dia.enums.appCommandOptionType.string),
-										tools.choice("Integer", dia.enums.appCommandOptionType.integer),
-										tools.choice("Boolean", dia.enums.appCommandOptionType.boolean),
-										tools.choice("User", dia.enums.appCommandOptionType.user),
-										tools.choice("Channel", dia.enums.appCommandOptionType.channel),
-										tools.choice("Role", dia.enums.appCommandOptionType.role),
-										tools.choice("Mentionable", dia.enums.appCommandOptionType.mentionable),
-										tools.choice("Number", dia.enums.appCommandOptionType.number),
-										tools.choice("Attachment", dia.enums.appCommandOptionType.attachment)
-									}
-								},
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "name",
-									description = "Option name",
-									required = true
-								},
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "description",
-									description = "Option description",
-									required = true
-								},
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "where",
-									description = "Place to insert (example: option.create) (root level by default)",
-								},
-								{
-									type = dia.enums.appCommandOptionType.boolean,
-									name = "required",
-									description = "Is option required? (false by default)",
-								},
-								{
-									type = dia.enums.appCommandOptionType.number,
-									name = "min_value",
-									description = "Minimum value for the option (Only for integer and number types)",
-								},
-								{
-									type = dia.enums.appCommandOptionType.number,
-									name = "max_value",
-									description = "Maximum value for the option (Only for integer and number types)",
-								},
-								{
-									type = dia.enums.appCommandOptionType.boolean,
-									name = "autocomplete",
-									description = "Autocompletion feature (only for string, integer and number types, false by default)",
-								},
-								{
-									type = dia.enums.appCommandOptionType.integer,
-									name = "channel_types",
-									description = "Channel types allowed to pick (Only for channel type)",
-									choices = {
-										tools.choice("Text channels", 0),
-										tools.choice("Voice channels", 1),
-										tools.choice("Text and voice channels", 2),
-										tools.choice("Categories", 3),
-										tools.choice("Stage voice channels", 4),
-										tools.choice("Voice and stage channels", 5),
-										tools.choice("Threads", 6),
-										tools.choice("Text channels and threads", 7),
-									}
-								},
-								{
-									type = dia.enums.appCommandOptionType.boolean,
-									name = "replace",
-									description = "Replace existing option"
-								}
-							}
-						},
-						{
-							type = dia.enums.appCommandOptionType.subCommand,
-							name = "edit",
-							description = "Edit option",
-							options = {
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "id",
-									description = "ApplicationCommand ID",
-									required = true,
-									autocomplete = true,
-								},
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "what",
-									description = "Option name",
-									required = true
-								},
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "where",
-									description = "Option location (example: option.create) (root level by default)",
-								},
-								{
-									type = dia.enums.appCommandOptionType.integer,
-									name = "type",
-									description = "Option type",
-									choices = {
-										tools.choice("Subcommand", dia.enums.appCommandOptionType.subCommand),
-										tools.choice("Subcommand group", dia.enums.appCommandOptionType.subCommandGroup),
-										tools.choice("String", dia.enums.appCommandOptionType.string),
-										tools.choice("Integer", dia.enums.appCommandOptionType.integer),
-										tools.choice("Boolean", dia.enums.appCommandOptionType.boolean),
-										tools.choice("User", dia.enums.appCommandOptionType.user),
-										tools.choice("Channel", dia.enums.appCommandOptionType.channel),
-										tools.choice("Role", dia.enums.appCommandOptionType.role),
-										tools.choice("Mentionable", dia.enums.appCommandOptionType.mentionable),
-										tools.choice("Number", dia.enums.appCommandOptionType.number),
-										tools.choice("Attachment", dia.enums.appCommandOptionType.attachment)
-									}
-								},
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "name",
-									description = "New option name",
-								},
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "description",
-									description = "Option description",
-								},
-								{
-									type = dia.enums.appCommandOptionType.boolean,
-									name = "required",
-									description = "Is option required? (false by default)",
-								},
-								{
-									type = dia.enums.appCommandOptionType.number,
-									name = "min_value",
-									description = "Minimum value for the option (Only for integer and number types)",
-								},
-								{
-									type = dia.enums.appCommandOptionType.number,
-									name = "max_value",
-									description = "Maximum value for the option (Only for integer and number types)",
-								},
-								{
-									type = dia.enums.appCommandOptionType.boolean,
-									name = "autocomplete",
-									description = "Autocompletion feature (only for string, integer and number types, false by default)",
-								},
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "channel_types",
-									description = "Channel types allowed to pick separated by space (Only for channel type) ",
-								},
-							}
-						},
-						{
-							type = dia.enums.appCommandOptionType.subCommand,
-							name = "delete",
-							description = "Delete option",
-							options = {
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "id",
-									description = "ApplicationCommand ID",
-									required = true,
-									autocomplete = true,
-								},
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "what",
-									description = "Option name",
-									required = true
-								},
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "where",
-									description = "Place where the option is (example: option.create) (root level by default)",
-								},
-							}
-						},
-						{
-							type = dia.enums.appCommandOptionType.subCommand,
-							name = "move",
-							description = "Move option",
-							options = {
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "id",
-									description = "ApplicationCommand ID",
-									required = true,
-									autocomplete = true,
-								},
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "what",
-									description = "Option name",
-									required = true
-								},
-								{
-									type = dia.enums.appCommandOptionType.integer,
-									name = "place",
-									description = "Order",
-									required = true,
-									min_value = 1
-								},
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "where",
-									description = "Place where the option is (example: option.create) (root level by default)",
-								},
-							}
-						},
-						{
-							type = dia.enums.appCommandOptionType.subCommand,
-							name = "choice",
-							description = "Add choice to option",
-							options = {
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "id",
-									description = "ApplicationCommand ID",
-									required = true,
-									autocomplete = true,
-								},
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "what",
-									description = "Option name",
-									required = true
-								},
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "choice_name",
-									description = "Choice visible name",
-									required = true,
-								},
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "choice_value",
-									description = "Choice value",
-									required = true,
-								},
-								{
-									type = dia.enums.appCommandOptionType.string,
-									name = "where",
-									description = "Place where the option is (example: option.create) (root level by default)",
-								},
-							}
-						}
-					}
-				},
-			},
-			default_permission = false
-		})
+		local appcmd, err = CLIENT:createGuildApplicationCommand(GUILD,
+			tools.slashCommand("appcmd", "Utility to edit application commands from discord")
+			:addOption(
+				tools.subCommand("create", "Create new command")
+				:addOption(tools.string("name", "Command name"):setRequired(true))
+				:addOption(
+					tools.integer("type", "Command type (Slash command by default)")
+					:addChoice(tools.choice("chatInput (Slash Command)", dia.enums.appCommandType.chatInput))
+					:addChoice(tools.choice("user (User Command)", dia.enums.appCommandType.user))
+					:addChoice(tools.choice("message (Message Command)", dia.enums.appCommandType.message))
+					)
+				:addOption(tools.boolean("default_permission", "Command default permission (true by default)"))
+				)
+			:addOption(
+				tools.subCommand("delete", "Delete command")
+				:addOption(tools.string("id", "ApplicationCommand ID"):setRequired(true):setAutocomplete(true))
+				)
+			:addOption(
+				tools.subCommand("get", "Get all commands or information about specific command")
+				:addOption(tools.string("id", "ApplicationCommand ID"):setRequired(true):setAutocomplete(true))
+				)
+			:addOption(
+				tools.subCommand("code", "Get command code")
+				:addOption(tools.string("id", "ApplicationCommand ID"):setRequired(true):setAutocomplete(true))
+				)
+			:addOption(
+				tools.subCommand("edit", "Edit first-level fields")
+				:addOption(tools.string("id", "ApplicationCommand ID"):setRequired(true):setAutocomplete(true))
+				:addOption(tools.string("name", "Command name"))
+				:addOption(tools.string("description", "Command description (slash commands only)"))
+				:addOption(tools.boolean("default_permission", "Command default permission (true by default)"))
+				)
+			:addOption(
+				tools.subCommandGroup("permissions", "Edit command permissions")
+				:addOption(
+					tools.subCommand("get", "See permissions of all commands or specific one")
+					:addOption(tools.string("id", "ApplicationCommand ID"):setAutocomplete(true))
+					)
+				:addOption(
+					tools.subCommand("set", "Set permission for a command")
+					:addOption(tools.string("id", "ApplicationCommand ID"):setRequired(true):setAutocomplete(true))
+					:addOption(tools.mentionable("what", "What should have different permission"):setRequired(true))
+					:addOption(
+						tools.integer("value", "Value to set"):setRequired(true)
+						:addChoice(tools.choice("Allow", 0))
+						:addChoice(tools.choice("Disallow", 1))
+						:addChoice(tools.choice("Default", 2))
+						)
+					)
+				)
+			:addOption(
+				tools.subCommandGroup("option", "Option related category")
+				:addOption(
+					tools.subCommand("create", "Create option")
+					:addOption(tools.string("id", "ApplicationCommand ID"):setRequired(true):setAutocomplete(true))
+					:addOption(
+						tools.integer("type", "Option type")
+						:setRequired(true)
+						:addChoice(tools.choice("Subcommand", dia.enums.appCommandOptionType.subCommand))
+						:addChoice(tools.choice("Subcommand group", dia.enums.appCommandOptionType.subCommandGroup))
+						:addChoice(tools.choice("String", dia.enums.appCommandOptionType.string))
+						:addChoice(tools.choice("Integer", dia.enums.appCommandOptionType.integer))
+						:addChoice(tools.choice("Boolean", dia.enums.appCommandOptionType.boolean))
+						:addChoice(tools.choice("User", dia.enums.appCommandOptionType.user))
+						:addChoice(tools.choice("Channel", dia.enums.appCommandOptionType.channel))
+						:addChoice(tools.choice("Role", dia.enums.appCommandOptionType.role))
+						:addChoice(tools.choice("Mentionable", dia.enums.appCommandOptionType.mentionable))
+						:addChoice(tools.choice("Number", dia.enums.appCommandOptionType.number))
+						:addChoice(tools.choice("Attachment", dia.enums.appCommandOptionType.attachment))
+						)
+					:addOption(tools.string("name", "Option name"):setRequired(true))
+					:addOption(tools.string("description", "Option description"):setRequired(true))
+					:addOption(tools.string("where", "Place to insert (example: option.create) (root level by default)"))
+					:addOption(tools.boolean("required", "Is option required? (false by default)"))
+					:addOption(tools.number("min_value", "Minimum value for the option (Only for integer and number types)"))
+					:addOption(tools.number("max_value", "Maximum value for the option (Only for integer and number types)"))
+					:addOption(tools.boolean("autocomplete", "Autocompletion feature (only for string, integer and number types, false by default)"))
+					:addOption(
+						tools.integer("channel_types", "Channel types allowed to pick (Only for channel type)")
+						:addChoice(tools.choice("Text channels", 0))
+						:addChoice(tools.choice("Voice channels", 1))
+						:addChoice(tools.choice("Text and voice channels", 2))
+						:addChoice(tools.choice("Categories", 3))
+						:addChoice(tools.choice("Stage voice channels", 4))
+						:addChoice(tools.choice("Voice and stage channels", 5))
+						:addChoice(tools.choice("Threads", 6))
+						:addChoice(tools.choice("Text channels and threads", 7))
+						)
+					:addOption(tools.boolean("replace", "Replace existing option"))
+					)
+				:addOption(
+					tools.subCommand("edit", "Edit option")
+					:addOption(tools.string("id", "ApplicationCommand ID"):setRequired(true):setAutocomplete(true))
+					:addOption(tools.string("what", "Option name"):setRequired(true))
+					:addOption(tools.string("where", "Place to insert (example: option.create) (root level by default)"))
+					:addOption(
+						tools.integer("type", "Option type")
+						:addChoice(tools.choice("Subcommand", dia.enums.appCommandOptionType.subCommand))
+						:addChoice(tools.choice("Subcommand group", dia.enums.appCommandOptionType.subCommandGroup))
+						:addChoice(tools.choice("String", dia.enums.appCommandOptionType.string))
+						:addChoice(tools.choice("Integer", dia.enums.appCommandOptionType.integer))
+						:addChoice(tools.choice("Boolean", dia.enums.appCommandOptionType.boolean))
+						:addChoice(tools.choice("User", dia.enums.appCommandOptionType.user))
+						:addChoice(tools.choice("Channel", dia.enums.appCommandOptionType.channel))
+						:addChoice(tools.choice("Role", dia.enums.appCommandOptionType.role))
+						:addChoice(tools.choice("Mentionable", dia.enums.appCommandOptionType.mentionable))
+						:addChoice(tools.choice("Number", dia.enums.appCommandOptionType.number))
+						:addChoice(tools.choice("Attachment", dia.enums.appCommandOptionType.attachment))
+						)
+					:addOption(tools.string("name", "Option name"))
+					:addOption(tools.string("description", "Option description"))
+					:addOption(tools.boolean("required", "Is option required? (false by default)"))
+					:addOption(tools.number("min_value", "Minimum value for the option (Only for integer and number types)"))
+					:addOption(tools.number("max_value", "Maximum value for the option (Only for integer and number types)"))
+					:addOption(tools.boolean("autocomplete", "Autocompletion feature (only for string, integer and number types, false by default)"))
+					:addOption(tools.string("channel_types", "Channel types allowed to pick separated by space (Only for channel type)"))
+					)
+				:addOption(
+					tools.subCommand("delete", "Delete option")
+					:addOption(tools.string("id", "ApplicationCommand ID"):setRequired(true):setAutocomplete(true))
+					:addOption(tools.string("what", "Option name"):setRequired(true))
+					:addOption(tools.string("where", "Place where the option is (example: option.create) (root level by default)"))
+					)
+				:addOption(
+					tools.subCommand("move", "Move option")
+					:addOption(tools.string("id", "ApplicationCommand ID"):setRequired(true):setAutocomplete(true))
+					:addOption(tools.string("what", "Option name"):setRequired(true))
+					:addOption(tools.integer("place", "Order"):setRequired(true):setMinValue(1))
+					:addOption(tools.string("where", "Place where the option is (example: option.create) (root level by default)"))
+					)
+				:addOption(
+					tools.subCommand("choice", "Add choice to option")
+					:addOption(tools.string("id", "ApplicationCommand ID"):setRequired(true):setAutocomplete(true))
+					:addOption(tools.string("what", "Option name"):setRequired(true))
+					:addOption(tools.string("choice_name", "Choice visible name"):setRequired(true))
+					:addOption(tools.string("choice_value", "Choice value"):setRequired(true))
+					:addOption(tools.string("where", "Place where the option is (example: option.create) (root level by default)"))
+					)
+				):setDefaultPermission(false)
+			)
 
 		appcmd:editPermissions({
 			permissions = {
-				{
-					id = CLIENT.owner.id,
-					type = dia.enums.appCommandPermissionType.user,
-					permission = true
-				}
+				tools.permission(CLIENT.owner, true)
 			}
 		})
 	end)
