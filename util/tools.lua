@@ -53,7 +53,7 @@ end
 function tools.devError(ia, err, trace)
 	trace = tostring(trace) or debug.traceback(nil, 2)
 
-	io.write("InteractionError (", ia.data.id, ")  by ", ia.member.id, ". Error: ", tostring(err), "\n", trace)
+	io.write("InteractionError (", ia.data.id, ") by ", ia.member.id, ". Error: ", tostring(err), "\n", trace)
 
 	ia:reply("**Interaction Error**\n" .. tostring(err) .. "\n```lua\n" .. trace .. "\n```", true)
 end
