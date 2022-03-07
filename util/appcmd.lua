@@ -74,7 +74,15 @@ endpoints["permissions.get"] = function(ia, cmd, args)
 			return tools.userError(ia, err)
 		end
 
-		ia:reply(DumpPermissionsList(perms, ia.client, ia.guild.id), true)
+		local result = DumpPermissionsList(perms, ia.client, ia.guild.id)
+
+		local success, error = ia:reply(result, true)
+
+		if not success then
+			print(result)
+
+			ia:reply("See console", true)
+		end
 	else
 		local cmd, err = ia.client:getGuildApplicationCommand(ia.guild.id, id)
 
