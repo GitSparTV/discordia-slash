@@ -609,6 +609,10 @@ function endpoints.option(ia, cmd, args, action, action_report)
 
 	if args.where then
 		where = FindLevel(ia, options, args.where)
+
+		if not where then
+			return
+		end
 	end
 
 	if not option_actions[action](ia, where, args) then
