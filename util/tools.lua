@@ -61,7 +61,7 @@ function tools.devError(ia, err, trace)
 end
 
 function tools.argError(ia, arg, comment)
-	ia:reply("**Invalid argument `" .. arg .. "`**\n\n" .. comment, true)
+	ia:reply("**Invalid argument `" .. arg .. "`**" .. (comment and ("\n\n" .. comment) or ""), true)
 end
 
 function tools.serializeApplicationCommand(cmd)
