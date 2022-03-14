@@ -663,12 +663,16 @@ local function entry(CLIENT, GUILD)
 		end
 	end)
 
+	local cmds_sorter = function(a, b)
+		return a.name < b.name
+	end
+
 	CLIENT:on("slashCommandAutocomplete", function(ia, cmd, focused)
 		if cmd.name == "appcmd" then
-			if cmd.focused_option.name == "id" then
+			if focused.name == "id" then
 				local cmds = CLIENT:getGuildApplicationCommands(ia.guild.id)
 				local ac = {}
-				local value = cmd.focused_option.value
+				local value = focused.value
 
 				for k, v in pairs(cmds) do
 					if value == "" or string.find(v.name, value, 1, true) or string.find(v.id, value, 1, true) then
@@ -679,6 +683,8 @@ local function entry(CLIENT, GUILD)
 						ac[#ac + 1] = tools.choice(tools.serializeApplicationCommand(v), k)
 					end
 				end
+
+				table.sort(ac, cmds_sorter)
 
 				ia:autocomplete(ac)
 			end
