@@ -243,7 +243,7 @@ do
 				data.parsed_options = ParseOptions(data.options, data.resolved)
 				data.focused, data.focused_option = FindFocused(data.options)
 
-				ia.client:emit("slashCommandAutocomplete", ia, data, data.focused, data.parsed_options)
+				ia.client:emit("slashCommandAutocomplete", ia, data, data.focused_option, data.parsed_options)
 			end
 		end)
 
