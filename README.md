@@ -42,6 +42,8 @@ end)
 
 -- for autocompletion
 -- focused_option - option where focused = true
+
+-- cmd.focused returns value directly
 CLIENT:on("slashCommandAutocomplete", function(ia, cmd, focused_option, args)
 
 end)
