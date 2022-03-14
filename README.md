@@ -263,138 +263,74 @@ dcmd.util.appcmd(CLIENT, "ID of your guild")
 
 This will add appcmd command, only the owner of the bot can use it by default.
 
-
+```markdown
 *Utility to edit application commands from discord*
-
 Allowed for everyone: **disallowed**
-
 │
-
 ├─ `create` (Subcommand) – *Create new command*
-
 │     ├─ `name` (String) – *Command name* [required]
-
 │     ├─ `description` (String) – *Command desciption (will be ignored for non slash commands types)* [required]
-
 │     ├─ `type` (Integer) – *Command type (Slash command by default)* [choices:3]
-
 │     └─ `default_permission` (Boolean) – *Command default permission (true by default)*
-
 ├─ `delete` (Subcommand) – *Delete command*
-
 │     └─ `id` (String) – *ApplicationCommand ID* [required, autocomplete]
-
 ├─ `get` (Subcommand) – *Get all commands or information about specific command*
-
 │     └─ `id` (String) – *ApplicationCommand ID* [required, autocomplete]
-
 ├─ `code` (Subcommand) – *Get command code*
-
 │     └─ `id` (String) – *ApplicationCommand ID* [required, autocomplete]
-
 ├─ `edit` (Subcommand) – *Edit first-level fields*
-
 │     ├─ `id` (String) – *ApplicationCommand ID* [required, autocomplete]
-
 │     ├─ `name` (String) – *Command name*
-
 │     ├─ `description` (String) – *Command description (slash commands only)*
-
 │     └─ `default_permission` (Boolean) – *Command default permission (true by default)*
-
 ├─ `permissions` (Subcommand Group) – *Edit command permissions*
-
 │     ├─ `get` (Subcommand) – *See permissions of all commands or specific one*
-
 │     │     └─ `id` (String) – *ApplicationCommand ID* [autocomplete]
-
 │     └─ `set` (Subcommand) – *Set permission for a command*
-
 │           ├─ `id` (String) – *ApplicationCommand ID* [required, autocomplete]
-
 │           ├─ `what` (Mentionable) – *What should have different permission* [required]
-
 │           └─ `value` (Integer) – *Value to set* [required, choices:3]
-
 └─ `option` (Subcommand Group) – *Option related category*
-
       ├─ `create` (Subcommand) – *Create option*
-
       │     ├─ `id` (String) – *ApplicationCommand ID* [required, autocomplete]
-
       │     ├─ `type` (Integer) – *Option type* [required, choices:11]
-
       │     ├─ `name` (String) – *Option name* [required]
-
       │     ├─ `description` (String) – *Option description* [required]
-
       │     ├─ `where` (String) – *Place to insert (example: option.create) (root level by default)*
-
       │     ├─ `required` (Boolean) – *Is option required? (false by default)*
-
       │     ├─ `min_value` (Number) – *Minimum value for the option (Only for integer and number types)*
-
       │     ├─ `max_value` (Number) – *Maximum value for the option (Only for integer and number types)*
-
       │     ├─ `autocomplete` (Boolean) – *Autocompletion feature (only for string, integer and number types, false by default)*
-
       │     ├─ `channel_types` (Integer) – *Channel types allowed to pick (Only for channel type)* [choices:8]
-
       │     └─ `replace` (Boolean) – *Replace existing option*
-
       ├─ `edit` (Subcommand) – *Edit option*
-
       │     ├─ `id` (String) – *ApplicationCommand ID* [required, autocomplete]
-
       │     ├─ `what` (String) – *Option name* [required]
-
       │     ├─ `where` (String) – *Place to insert (example: option.create) (root level by default)*
-
       │     ├─ `type` (Integer) – *Option type* [choices:11]
-
       │     ├─ `name` (String) – *Option name*
-
       │     ├─ `description` (String) – *Option description*
-
       │     ├─ `required` (Boolean) – *Is option required? (false by default)*
-
       │     ├─ `min_value` (Number) – *Minimum value for the option (Only for integer and number types)*
-
       │     ├─ `max_value` (Number) – *Maximum value for the option (Only for integer and number types)*
-
       │     ├─ `autocomplete` (Boolean) – *Autocompletion feature (only for string, integer and number types, false by default)*
-
       │     └─ `channel_types` (String) – *Channel types allowed to pick separated by space (Only for channel type)*
-
       ├─ `delete` (Subcommand) – *Delete option*
-
       │     ├─ `id` (String) – *ApplicationCommand ID* [required, autocomplete]
-
       │     ├─ `what` (String) – *Option name* [required]
-
       │     └─ `where` (String) – *Place where the option is (example: option.create) (root level by default)*
-
       ├─ `move` (Subcommand) – *Move option*
-
       │     ├─ `id` (String) – *ApplicationCommand ID* [required, autocomplete]
-
       │     ├─ `what` (String) – *Option name* [required]
-
       │     ├─ `place` (Integer) – *Order* [required, min_value:1]
-
       │     └─ `where` (String) – *Place where the option is (example: option.create) (root level by default)*
-
       └─ `choice` (Subcommand) – *Add choice to option*
-
             ├─ `id` (String) – *ApplicationCommand ID* [required, autocomplete]
-
             ├─ `what` (String) – *Option name* [required]
-
             ├─ `choice_name` (String) – *Choice visible name* [required]
-
             ├─ `choice_value` (String) – *Choice value* [required]
-
             └─ `where` (String) – *Place where the option is (example: option.create) (root level by default)*
+```
 
 #### test
 
