@@ -145,13 +145,21 @@ function endpoints.create(ia, cmd, args)
 		args.description = nil
 	end
 
-	local cmd, err = ia.client:createGuildApplicationCommand(ia.guild.id,
-		tools.applicationCommand()
-		:setName(args.name)
-		:setDescription(args.description)
-		:setType(args.type)
-		:setDefaultPermission(args.default_permission)
-		)
+	local _cmd = tools.applicationCommand():setName(args.name)
+
+		if args.description then
+			_cmd:setDescription(args.description)
+		end
+
+		if args.type then
+			_cmd:setType(args.type)
+		end
+
+		if args.default_permission ~= nil then
+			_cmd:setDefaultPermission(args.default_permission)
+		end
+
+	local cmd, err = ia.client:createGuildApplicationCommand(ia.guild.id, _cmd)
 
 	if not cmd then
 		return tools.userError(ia, err)
@@ -409,15 +417,32 @@ local option_actions = {
 			end
 		end
 
-		local option = tools.options()
+		local option = tools.option()
 			:setType(args.type)
 			:setName(args.name)
 			:setDescription(args.description)
-			:setRequired(args.required)
-			:setMinValue(args.min_value)
-			:setMaxValue(args.max_value)
-			:setAutocomplete(args.autocomplete)
-			:setChannelTypes(args.channel_types)
+
+
+		if args.required ~= nil then
+			option:setRequired(args.required)
+		end
+
+		if args.min_value then
+			option:setMinValue(args.min_value)
+		end
+
+		if args.max_value then
+			option:setMaxValue(args.max_value)
+		end
+
+		if args.autocomplete ~= nil then
+			option:setAutocomplete(args.autocomplete)
+		end
+
+		if args.channel_types then
+			option:setChannelTypes(args.channel_types)
+		end
+
 
 		if args.replace then
 			for k, v in ipairs(where) do
@@ -666,6 +691,7 @@ local function entry(CLIENT, GUILD)
 			:addOption(
 				tools.subCommand("create", "Create new command")
 				:addOption(tools.string("name", "Command name"):setRequired(true))
+				:addOption(tools.string("description", "Command desciption (will be ignored for non slash commands types)"):setRequired(true))
 				:addOption(
 					tools.integer("type", "Command type (Slash command by default)")
 					:addChoice(tools.choice("chatInput (Slash Command)", dia.enums.appCommandType.chatInput))
