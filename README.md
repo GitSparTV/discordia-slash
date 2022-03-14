@@ -333,7 +333,12 @@ Allowed for everyone: **disallowed**
 ```
 
 #### test
+Allow you to test all slash discordia features.
 
+To add test to your guild call before `CLIENT:on("ready")`:
+```lua
+dcmd.util.test(CLIENT, "ID of your guild")
+```
 
 ### Exposed Client functions
 ```lua
