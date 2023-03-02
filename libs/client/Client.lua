@@ -5,6 +5,56 @@ require("discordia-interactions")
 local Cache = discordia.class.classes.Cache
 local ApplicationCommand = require("containers/ApplicationCommand")
 
+function Client:getGlobalApplicationCommands()
+	local data, err = self._api:getGlobalApplicationCommands(self:getApplicationInformation().id)
+
+	if data then
+		return Cache(data, ApplicationCommand, self)
+	else
+		return nil, err
+	end
+end
+
+function Client:createGlobalApplicationCommand(id, payload)
+	local data, err = self._api:createGlobalApplicationCommand(self:getApplicationInformation().id, id)
+
+	if data then
+		return ApplicationCommand(data, self)
+	else
+		return nil, err
+	end
+end
+
+function Client:getGlobalApplicationCommand(id)
+	local data, err = self._api:getGlobalApplicationCommand(self:getApplicationInformation().id, id)
+
+	if data then
+		return ApplicationCommand(data, self)
+	else
+		return nil, err
+	end
+end
+
+function Client:editGlobalApplicationCommand(id, payload)
+	local data, err = self._api:editGlobalApplicationCommand(self:getApplicationInformation().id, id, payload)
+
+	if data then
+		return ApplicationCommand(data, self)
+	else
+		return nil, err
+	end
+end
+
+function Client:deleteGlobalApplicationCommand(id)
+	local data, err = self._api:deleteGlobalApplicationCommand(self:getApplicationInformation().id, id)
+
+	if data then
+		return data
+	else
+		return nil, err
+	end
+end
+
 function Client:getGuildApplicationCommands(guild_id)
 	local data, err = self._api:getGuildApplicationCommands(self:getApplicationInformation().id, guild_id)
 

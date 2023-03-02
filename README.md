@@ -342,6 +342,11 @@ dcmd.util.test(CLIENT, "ID of your guild")
 
 ### Exposed Client functions
 ```lua
+Client:getGlobalApplicationCommands(guild_id)
+Client:createGlobalApplicationCommand(guild_id, id, payload)
+Client:getGlobalApplicationCommand(guild_id, id)
+Client:editGlobalApplicationCommand(guild_id, id, payload)
+Client:deleteGlobalApplicationCommand(guild_id, id)
 Client:getGuildApplicationCommands(guild_id)
 Client:createGuildApplicationCommand(guild_id, id, payload)
 Client:getGuildApplicationCommand(guild_id, id)
