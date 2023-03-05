@@ -218,13 +218,13 @@ local function ParseOptions(options, resolved)
 		if type == subCommandOptionType or type == subCommandGroupOptionType then
 			parsed_options[name] = ParseOptions(v.options, resolved)
 		elseif type == userOptionType then
-			parsed_options[name] = resolved.members[value]
+			parsed_options[name] = (resolved.members and resolved.members[value]) or resolved.users[value]
 		elseif type == channelOptionType then
 			parsed_options[name] = resolved.channels[value]
 		elseif type == roleOptionType then
 			parsed_options[name] = resolved.roles[value]
 		elseif type == mentionableOptionType then
-			parsed_options[name] = (resolved.members and resolved.members[value]) or (resolved.roles and resolved.roles[value])
+			parsed_options[name] = (resolved.members and resolved.members[value]) or (resolved.users and resolved.users[value]) or (resolved.roles and resolved.roles[value])
 		elseif type == attachmentOptionType then
 			parsed_options[name] = resolved.attachments[value]
 		else
