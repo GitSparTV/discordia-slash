@@ -63,6 +63,10 @@ function get:application_id()
 	return self._application_id
 end
 
+function get:mentionString()
+	return self._type == discordia.enums.appCommandType.chatInput and "</" .. self._name .. ":" .. self._id .. ">" or nil
+end
+
 function get:name()
 	return self._name
 end
