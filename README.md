@@ -19,7 +19,7 @@ Ask me in Discord: Spar#6665 or [here](https://discord.gg/sinisterware)
 
 ```lua
 local dia = require("discordia")
-local dcmd = require("discordia-commands")
+local dcmd = require("discordia-slash")
 -- required to initialize:
 local CLIENT = dia.Client():useApplicationCommands()
 
