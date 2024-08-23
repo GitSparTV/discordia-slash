@@ -233,7 +233,7 @@ function optionMeta:addChoice(choice)
 end
 
 function optionMeta:setChoices(choices)
-	if choices then
+	if not choices then
 		error("choices must not be nil")
 	end
 
@@ -243,7 +243,7 @@ function optionMeta:setChoices(choices)
 end
 
 function optionMeta:addChannelType(channel_type)
-	if channel_type then
+	if not channel_type then
 		error("channel_type must not be nil")
 	end
 
@@ -257,7 +257,7 @@ function optionMeta:addChannelType(channel_type)
 end
 
 function optionMeta:setChannelTypes(channel_types)
-	if channel_types then
+	if not channel_types then
 		error("channel_types must not be nil")
 	end
 
