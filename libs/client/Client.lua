@@ -6,7 +6,7 @@ local Cache = discordia.class.classes.Cache
 local ApplicationCommand = require("containers/ApplicationCommand")
 
 function Client:getGlobalApplicationCommands()
-	local data, err = self._api:getGlobalApplicationCommands(self:getApplicationInformation().id)
+	local data, err = self._api:getGlobalApplicationCommands(self._user._id)
 
 	if data then
 		return Cache(data, ApplicationCommand, self)
@@ -16,7 +16,7 @@ function Client:getGlobalApplicationCommands()
 end
 
 function Client:createGlobalApplicationCommand(id, payload)
-	local data, err = self._api:createGlobalApplicationCommand(self:getApplicationInformation().id, id)
+	local data, err = self._api:createGlobalApplicationCommand(self._user._id, id)
 
 	if data then
 		return ApplicationCommand(data, self)
@@ -26,7 +26,7 @@ function Client:createGlobalApplicationCommand(id, payload)
 end
 
 function Client:getGlobalApplicationCommand(id)
-	local data, err = self._api:getGlobalApplicationCommand(self:getApplicationInformation().id, id)
+	local data, err = self._api:getGlobalApplicationCommand(self._user._id, id)
 
 	if data then
 		return ApplicationCommand(data, self)
@@ -36,7 +36,7 @@ function Client:getGlobalApplicationCommand(id)
 end
 
 function Client:editGlobalApplicationCommand(id, payload)
-	local data, err = self._api:editGlobalApplicationCommand(self:getApplicationInformation().id, id, payload)
+	local data, err = self._api:editGlobalApplicationCommand(self._user._id, id, payload)
 
 	if data then
 		return ApplicationCommand(data, self)
@@ -46,7 +46,7 @@ function Client:editGlobalApplicationCommand(id, payload)
 end
 
 function Client:deleteGlobalApplicationCommand(id)
-	local data, err = self._api:deleteGlobalApplicationCommand(self:getApplicationInformation().id, id)
+	local data, err = self._api:deleteGlobalApplicationCommand(self._user._id, id)
 
 	if data then
 		return data
@@ -56,7 +56,7 @@ function Client:deleteGlobalApplicationCommand(id)
 end
 
 function Client:getGuildApplicationCommands(guild_id)
-	local data, err = self._api:getGuildApplicationCommands(self:getApplicationInformation().id, guild_id)
+	local data, err = self._api:getGuildApplicationCommands(self._user._id, guild_id)
 
 	if data then
 		return Cache(data, ApplicationCommand, self)
@@ -66,7 +66,7 @@ function Client:getGuildApplicationCommands(guild_id)
 end
 
 function Client:createGuildApplicationCommand(guild_id, id, payload)
-	local data, err = self._api:createGuildApplicationCommand(self:getApplicationInformation().id, guild_id, id)
+	local data, err = self._api:createGuildApplicationCommand(self._user._id, guild_id, id)
 
 	if data then
 		return ApplicationCommand(data, self)
@@ -76,7 +76,7 @@ function Client:createGuildApplicationCommand(guild_id, id, payload)
 end
 
 function Client:getGuildApplicationCommand(guild_id, id)
-	local data, err = self._api:getGuildApplicationCommand(self:getApplicationInformation().id, guild_id, id)
+	local data, err = self._api:getGuildApplicationCommand(self._user._id, guild_id, id)
 
 	if data then
 		return ApplicationCommand(data, self)
@@ -86,7 +86,7 @@ function Client:getGuildApplicationCommand(guild_id, id)
 end
 
 function Client:editGuildApplicationCommand(guild_id, id, payload)
-	local data, err = self._api:editGuildApplicationCommand(self:getApplicationInformation().id, guild_id, id, payload)
+	local data, err = self._api:editGuildApplicationCommand(self._user._id, guild_id, id, payload)
 
 	if data then
 		return ApplicationCommand(data, self)
@@ -96,7 +96,7 @@ function Client:editGuildApplicationCommand(guild_id, id, payload)
 end
 
 function Client:deleteGuildApplicationCommand(guild_id, id)
-	local data, err = self._api:deleteGuildApplicationCommand(self:getApplicationInformation().id, guild_id, id)
+	local data, err = self._api:deleteGuildApplicationCommand(self._user._id, guild_id, id)
 
 	if data then
 		return data
@@ -106,7 +106,7 @@ function Client:deleteGuildApplicationCommand(guild_id, id)
 end
 
 function Client:getGuildApplicationCommandPermissions(guild_id)
-	local data, err = self._api:getGuildApplicationCommandPermissions(self:getApplicationInformation().id, guild_id)
+	local data, err = self._api:getGuildApplicationCommandPermissions(self._user._id, guild_id)
 
 	if data then
 		return data
@@ -116,7 +116,7 @@ function Client:getGuildApplicationCommandPermissions(guild_id)
 end
 
 function Client:getApplicationCommandPermissions(guild_id, id)
-	local data, err = self._api:getApplicationCommandPermissions(self:getApplicationInformation().id, guild_id, id)
+	local data, err = self._api:getApplicationCommandPermissions(self._user._id, guild_id, id)
 
 	if data then
 		return data
@@ -126,7 +126,7 @@ function Client:getApplicationCommandPermissions(guild_id, id)
 end
 
 function Client:editApplicationCommandPermissions(guild_id, id, payload)
-	local data, err = self._api:editApplicationCommandPermissions(self:getApplicationInformation().id, guild_id, id, payload)
+	local data, err = self._api:editApplicationCommandPermissions(self._user._id, guild_id, id, payload)
 
 	if data then
 		return data
