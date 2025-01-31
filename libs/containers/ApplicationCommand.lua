@@ -37,7 +37,7 @@ function ApplicationCommand:delete()
 	if self.guild then
 		return self.client:deleteGuildApplicationCommand(self.guild.id, self.id)
 	else
-		error("not implemented")
+		return self.client:deleteGlobalApplicationCommand(self.id)
 	end
 end
 
